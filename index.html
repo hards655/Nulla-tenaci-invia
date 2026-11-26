@@ -11,7 +11,6 @@
   <title>Резерв+</title>
 
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.png" />
-  <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
   <script>
     let deferredPrompt = null;
@@ -31,7 +30,6 @@
       }
     }
 
-    const icoUrl = new URL('app.ico', location.href).href;
     const pngUrl = new URL('app.png', location.href).href;
 
     const manifest = {
@@ -90,10 +88,6 @@
       const appleIcon = document.getElementById('apple-touch-icon');
       if (appleIcon) {
         appleIcon.href = `${pngUrl}?v=${v}`;
-      }
-      const favIcon = document.getElementById('favicon-icon');
-      if (favIcon) {
-        favIcon.href = `${icoUrl}?v=${v}`;
       }
       updateInstallButtonState();
     });
