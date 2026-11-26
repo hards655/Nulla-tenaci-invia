@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" id="meta-theme-color" content="#1E1E1A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Резерв+" />
+  <title>Резерв+</title>
+
+  <!-- Іконка з файлу app.ico для браузера та головного екрану -->
+  <link rel="icon" href="app.ico" sizes="any" />
+  <link rel="shortcut icon" href="app.ico" />
+  <link rel="apple-touch-icon" href="app.ico" />
+
+  <!-- Динамічний Manifest з абсолютним посиланням на app.ico -->
+  <script>
+    (function() {
+      const iconUrl = new URL('app.ico', window.location.href).href;
+      const startUrl = new URL('.', window.location.href).href;
+      const manifest = {
+        name: "Резерв+",
+        short_name: "Резерв+",
+        start_url: startUrl,
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#1E1E1A",
+        theme_color: "#DDD8C4",
+        icons: [
+          {
+            src: iconUrl,
+            sizes: "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
+            type: "image/x-icon",
+            purpose: "any maskable"
+          }
+        ]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    })();
+  </script>
+
+  <style>
+    /* Підключення локальних шрифтів e-Ukraine */
+    @font-face {
+      font-family: 'e-Ukraine';
+      src: url('e_ukraine_light.otf') format('opentype');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'e-Ukraine';
+      src: url('e_ukraine_regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'e-Ukraine';
+      src: url('e_ukraine_medium.otf') format('opentype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'e-Ukraine';
+      src: url('e_ukraine_bold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-beige: #DDD8C4;
+      --bg-card-beige: #D5D0BC;
+      --bg-dark: #1E1E1A;
+      --text-main: #181815;
+      --text-muted: #5C594E;
+      --accent-orange: #F38A00;
+      --ticker-brown: #876E45;
+      --ticker-yellow: #F9E255;
+      --alert-red: #C93B1B;
+      --card-white: #FFFFFF;
+      --border-beige: #B9B39E;
+      --divider-beige: #C8C2AE;
+      --success-green: #4C8C4A;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    [contenteditable="true"] {
+      user-select: text;
+      outline: 1.5px dashed #F38A00;
+      border-radius: 4px;
+      background-color: rgba(243, 138, 0, 0.08);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background-color: var(--bg-dark);
+      font-family: 'e-Ukraine', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .app-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background-color: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.2s ease;
+    }
+
+    @media (min-width: 520px) {
+      body {
+        background-color: #111111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .app-shell {
+        max-width: 412px;
+        max-height: 915px;
+        border-radius: 28px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      padding-top: var(--safe-top);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* ==================== ЕКРАН 1: SPLASH ==================== */
+    #screen-splash {
+      background-color: var(--bg-dark);
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      padding-bottom: var(--safe-bottom);
+    }
+
+    .splash-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      transform: translateY(-2%);
+    }
+
+    .splash-title {
+      color: #EAE6D7;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.24;
+      letter-spacing: -0.02em;
+    }
+
+    /* ==================== ЕКРАН 2: PIN CODE ==================== */
+    #screen-pin {
+      padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
+      justify-content: space-between;
+    }
+
+    .pin-header {
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 12px 0;
+    }
+
+    .pin-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #FFFFFF;
+      transition: background-color 0.15s, transform 0.15s;
+    }
+
+    .pin-dot.filled {
+      background-color: var(--text-main);
+      transform: scale(1.12);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px 20px;
+      justify-items: center;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    .num-btn {
+      width: clamp(66px, 19vw, 78px);
+      height: clamp(66px, 19vw, 78px);
+      border-radius: 50%;
+      background-color: #FFFFFF;
+      border: none;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.08s, background-color 0.15s;
+    }
+
+    .num-btn:active {
+      transform: scale(0.94);
+      background-color: #F0EFEA;
+    }
+
+    .num-btn.transparent {
+      background-color: transparent;
+    }
+
+    .forgot-pin {
+      text-align: center;
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    /* ==================== ВЕРХНІЙ РЯДОК (СПОВІЩЕННЯ) ==================== */
+    .top-action-row {
+      display: flex;
+      justify-content: flex-end;
+      padding: 18px 22px 24px;
+      flex-shrink: 0;
+    }
+
+    .notif-pill {
+      background-color: #FFFFFF;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    /* ==================== ЕКРАН 3: LOADING CARD ==================== */
+    .card-wrapper {
+      flex: 1;
+      padding: 0 22px 42px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .loading-card {
+      flex: 1;
+      border: 1px solid #9D9885;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 24px;
+      cursor: pointer;
+    }
+
+    .loading-card h2 {
+      margin-top: 22px;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.22;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .loading-card p {
+      margin-top: 14px;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.38;
+      color: var(--text-main);
+    }
+
+    /* ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== */
+    .id-card {
+      flex: 1;
+      background-color: var(--bg-card-beige);
+      border: 1px solid var(--border-beige);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .id-alert-banner {
+      background-color: var(--alert-red);
+      color: #FFFFFF;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 10.5px;
+      font-weight: 500;
+      line-height: 1.25;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .id-alert-banner.hidden {
+      display: none;
+    }
+
+    .id-top-section {
+      padding: 20px 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .id-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .id-header-row h2 {
+      font-size: 23px;
+      font-weight: 400;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .id-main-info {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+    }
+
+    .photo-box {
+      width: 43%;
+      aspect-ratio: 3 / 3.92;
+      border-radius: 10px;
+      background: #F4F5F7;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-box svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .id-meta-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 2px;
+    }
+
+    .meta-group span {
+      display: block;
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .meta-group strong {
+      display: block;
+      font-size: 14.5px;
+      font-weight: 500;
+      line-height: 1.28;
+      color: var(--text-main);
+    }
+
+    /* Біжуча стрічка */
+    .ticker-strip {
+      background-color: var(--ticker-brown);
+      color: #FFFFFF;
+      padding: 6px 0;
+      font-size: 11.5px;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .ticker-strip.alert-mode {
+      background-color: var(--alert-red);
+      color: #FFFFFF;
+    }
+
+    .ticker-strip.updating-mode {
+      background-color: var(--ticker-yellow) !important;
+      color: #181815 !important;
+      font-weight: 500;
+    }
+
+    .ticker-content {
+      display: inline-block;
+      animation: marquee 16s linear infinite;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .id-bottom-section {
+      padding: 14px 20px 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .id-role-label {
+      font-size: 12.5px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .id-full-name {
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.22;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      padding-right: 56px;
+    }
+
+    .fab-plus {
+      position: absolute;
+      right: 18px;
+      bottom: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: var(--accent-orange);
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+      transition: transform 0.12s;
+    }
+
+    .fab-plus:active {
+      transform: scale(0.92);
+    }
+
+    /* Overlay & Bottom Sheet */
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 20;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 0;
+      background-color: #FFFFFF;
+      border-radius: 22px 22px 0 0;
+      padding: 12px 22px 22px;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 25;
+      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .bottom-sheet.open {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      background-color: #181815;
+      border-radius: 2px;
+      margin: 0 auto 16px;
+      cursor: pointer;
+    }
+
+    .sheet-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+      font-size: 15.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .sheet-item:active {
+      opacity: 0.65;
+    }
+
+    /* ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
+    #screen-full-info {
+      background-color: var(--bg-beige);
+      padding: var(--safe-top) 16px var(--safe-bottom);
+      display: none;
+      flex-direction: column;
+    }
+
+    #screen-full-info.active {
+      display: flex;
+    }
+
+    .full-info-handle-bar {
+      padding: 10px 0 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .full-info-handle {
+      width: 38px;
+      height: 4px;
+      background-color: #181815;
+      border-radius: 2px;
+    }
+
+    .full-info-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 20px;
+      scrollbar-width: none;
+    }
+
+    .full-info-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .info-card {
+      background-color: #FFFFFF;
+      border-radius: 18px;
+      padding: 18px 18px;
+      margin-bottom: 10px;
+    }
+
+    .info-card-name {
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .info-card-role {
+      font-size: 13.5px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .info-photo-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .info-field-block {
+      margin-bottom: 14px;
+    }
+
+    .info-field-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      font-size: 12.5px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .info-value {
+      font-size: 14.5px;
+      font-weight: 400;
+      line-height: 1.32;
+      color: var(--text-main);
+      word-break: break-word;
+    }
+
+    .info-divider {
+      height: 1px;
+      background-color: #ECEAE2;
+      margin: 14px 0;
+    }
+
+    .info-kv-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .info-kv-row .info-label {
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .info-kv-row .info-value {
+      text-align: right;
+    }
+
+    .info-paragraph {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--text-main);
+      margin: 12px 0 14px;
+    }
+
+    .verified-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      margin-bottom: 14px;
+    }
+
+    .green-check-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: var(--success-green);
+      color: #FFFFFF;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* ==================== ЕКРАН 5: МЕНЮ ==================== */
+    #screen-menu {
+      padding: calc(var(--safe-top) + 16px) 22px 14px;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .app-version {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-top: 3px;
+      margin-bottom: 18px;
+    }
+
+    .menu-card {
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .menu-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .menu-row:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 54px;
+      right: 18px;
+      bottom: 0;
+      height: 1px;
+      background-color: #ECEAE2;
+    }
+
+    .menu-row:active {
+      background-color: #F7F6F2;
+    }
+
+    .menu-row-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-main);
+    }
+
+    .logout-btn {
+      display: block;
+      margin: 16px auto 14px;
+      background-color: #2B2A25;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 38px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .privacy-link {
+      text-align: center;
+      font-size: 12.5px;
+      font-weight: 300;
+      color: #3D3B34;
+      text-decoration: underline;
+      line-height: 1.38;
+      cursor: pointer;
+      padding-bottom: 8px;
+    }
+
+    /* ==================== ЕКРАН 6: ВАКАНСІЇ ==================== */
+    #screen-vacancies {
+      padding: calc(var(--safe-top) + 12px) 22px 20px;
+      justify-content: space-between;
+    }
+
+    .vac-top-icon {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .vac-content h1 {
+      font-size: 27px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .vac-content p {
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.42;
+      color: var(--text-main);
+      margin-bottom: 18px;
+    }
+
+    .vac-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .custom-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 1.6px solid var(--text-main);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    .custom-checkbox.checked::after {
+      content: '✓';
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .primary-orange-btn {
+      width: 100%;
+      background-color: var(--accent-orange);
+      color: var(--text-main);
+      border: none;
+      border-radius: 999px;
+      padding: 15px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ==================== ЕКРАН 7: СЕРВІСИ ==================== */
+    #screen-services {
+      padding: calc(var(--safe-top) + 14px) 22px 14px;
+      overflow-y: auto;
+    }
+
+    #screen-services .page-title {
+      margin-bottom: 14px;
+    }
+
+    .service-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 17px 0;
+      border-bottom: 1px solid var(--divider-beige);
+      font-size: 15.5px;
+      font-weight: 400;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .service-item:last-child {
+      border-bottom: none;
+    }
+
+    /* ==================== НИЖНЯ ПАНЕЛЬ ВКЛАДОК ==================== */
+    .bottom-tabs {
+      background-color: #FFFFFF;
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      padding: 10px 0 calc(10px + var(--safe-bottom));
+      z-index: 30;
+      flex-shrink: 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .bottom-tabs.visible {
+      display: grid;
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #4A4945;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: #11110E;
+      font-weight: 500;
+    }
+
+    /* ==================== ПРИХОВАНЕ МОДАЛЬНЕ ВІКНО РЕДАКТОРА ==================== */
+    .editor-modal {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(20, 20, 18, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding: calc(var(--safe-top) + 12px) 14px calc(var(--safe-bottom) + 12px);
+    }
+
+    .editor-modal.open {
+      display: flex;
+    }
+
+    .editor-box {
+      background-color: #FFFFFF;
+      border-radius: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #ECEAE2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .editor-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .editor-close {
+      background: #F0EFEA;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .editor-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .editor-photo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #F7F5EE;
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .editor-photo-preview {
+      width: 48px;
+      height: 62px;
+      border-radius: 6px;
+      background: #DDD8C4;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .editor-photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .upload-label-btn {
+      display: inline-block;
+      background: var(--text-main);
+      color: #FFFFFF;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .inline-edit-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFF6E8;
+      border: 1px solid #F38A00;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-group label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .field-group input, .field-group textarea {
+      width: 100%;
+      border: 1px solid #D4CFC0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 13px;
+      color: var(--text-main);
+      user-select: text;
+    }
+
+    .field-group textarea {
+      resize: vertical;
+      min-height: 52px;
+    }
+
+    .editor-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #ECEAE2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .editor-footer-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-save {
+      flex: 1;
+      background: var(--accent-orange);
+      color: var(--text-main);
+      border: none;
+      border-radius: 999px;
+      padding: 11px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-reset {
+      background: #EFECE2;
+      color: var(--text-main);
+      border: none;
+      border-radius: 999px;
+      padding: 11px 14px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .btn-export-json {
+      width: 100%;
+      background: #2B2A25;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 999px;
+      padding: 10px;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 12.5px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    /* Toast */
+    .toast {
+      position: absolute;
+      top: calc(var(--safe-top) + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background-color: #23221E;
+      color: #FFFFFF;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 150;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-shell" class="app-shell">
+    <div id="toast" class="toast">Скопійовано</div>
+
+    <!-- ==================== ЕКРАН 1: SPLASH ==================== -->
+    <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
+      <div class="splash-logo">
+        <svg width="54" height="62" viewBox="0 0 60 68" fill="none">
+          <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#EAE6D7"/>
+          <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#1E1E1A"/>
+        </svg>
+        <div class="splash-title">
+          Міністерство<br>оборони<br>України
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 2: PIN CODE ==================== -->
+    <section id="screen-pin" class="screen">
+      <div class="pin-header">Код для входу</div>
+
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+
+      <div class="numpad">
+        <button class="num-btn" onclick="pressDigit(1)">1</button>
+        <button class="num-btn" onclick="pressDigit(2)">2</button>
+        <button class="num-btn" onclick="pressDigit(3)">3</button>
+        <button class="num-btn" onclick="pressDigit(4)">4</button>
+        <button class="num-btn" onclick="pressDigit(5)">5</button>
+        <button class="num-btn" onclick="pressDigit(6)">6</button>
+        <button class="num-btn" onclick="pressDigit(7)">7</button>
+        <button class="num-btn" onclick="pressDigit(8)">8</button>
+        <button class="num-btn" onclick="pressDigit(9)">9</button>
+
+        <button class="num-btn transparent" onclick="goToScreen('loading')" aria-label="Біометрія">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round">
+            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+            <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+            <path d="M2 12a10 10 0 0 1 18-6"/>
+            <path d="M2 16h.01"/>
+            <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+            <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+            <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+          </svg>
+        </button>
+
+        <button class="num-btn" onclick="pressDigit(0)">0</button>
+
+        <button class="num-btn transparent" onclick="deleteDigit()" aria-label="Стерти">
+          <svg width="34" height="24" viewBox="0 0 32 22" fill="none">
+            <path d="M10 1H29C30.1 1 31 1.9 31 3V19C31 20.1 30.1 21 29 21H10L2 11L10 1Z" fill="#FFFFFF"/>
+            <path d="M16 7.5L23 14.5M23 7.5L16 14.5" stroke="#181815" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="forgot-pin" onclick="showToast('Відновлення через BankID')">
+        Не пам’ятаю код для входу
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 3: LOADING REGISTRY ==================== -->
+    <section id="screen-loading" class="screen">
+      <div class="top-action-row">
+        <button class="notif-pill" onclick="showToast('Нових сповіщень немає')">
+          <span>Сповіщення</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="card-wrapper">
+        <div class="loading-card" onclick="goToScreen('id')">
+          <svg width="44" height="50" viewBox="0 0 60 68" fill="none">
+            <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#181815"/>
+            <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#DDD8C4"/>
+          </svg>
+          <h2>Отримуємо<br>інформацію з<br>реєстру</h2>
+          <p>Поки ми шукаємо дані,<br>перегляньте вакансії в Силах<br>оборони</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== -->
+    <section id="screen-id" class="screen">
+      <div class="top-action-row">
+        <button class="notif-pill" onclick="showToast('Нових сповіщень немає')">
+          <span>Сповіщення</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="card-wrapper">
+        <div class="id-card" onclick="handleCardClick()">
+          <div id="id-alert-banner" class="id-alert-banner hidden" data-bind="topAlert"></div>
+
+          <div class="id-top-section">
+            <div class="id-header-row">
+              <h2>Резерв ID</h2>
+              <svg width="34" height="38" viewBox="0 0 60 68" fill="none">
+                <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#181815"/>
+                <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#D5D0BC"/>
+              </svg>
+            </div>
+
+            <div class="id-main-info">
+              <div class="photo-box user-photo-container"></div>
+
+              <div class="id-meta-col">
+                <div class="meta-group">
+                  <span>Дата народження:</span>
+                  <strong data-bind="dob">22.03.1999</strong>
+                </div>
+                <div class="meta-group" id="deferral-block">
+                  <span>Відстрочка до:</span>
+                  <strong data-bind="deferral">завершення<br>мобілізації</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ticker-strip" class="ticker-strip">
+            <div class="ticker-content" id="ticker-text">
+              Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 •&nbsp;
+            </div>
+          </div>
+
+          <div class="id-bottom-section">
+            <div class="id-role-label" data-bind="role">Військовозобов’язаний</div>
+            <div class="id-full-name" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
+
+            <button class="fab-plus" onclick="event.stopPropagation(); toggleSheet(true)" aria-label="Дії з документом">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Затемнення фону для шторки -->
+      <div id="sheet-backdrop" class="sheet-backdrop" onclick="toggleSheet(false)"></div>
+
+      <!-- Нижня шторка дій -->
+      <div id="bottom-sheet" class="bottom-sheet">
+        <div class="sheet-handle" onclick="toggleSheet(false)"></div>
+
+        <div class="sheet-item" onclick="toggleSheet(false); goToScreen('full-info')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9.5"/>
+            <path d="M12 11v5M12 8h.01" stroke-linecap="round"/>
+          </svg>
+          <span>Переглянути документ</span>
+        </div>
+
+        <div class="sheet-item" onclick="toggleSheet(false); showToast('PDF файл сформовано')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="8" y1="13" x2="16" y2="13"/>
+            <line x1="8" y1="17" x2="13" y2="17"/>
+          </svg>
+          <span>Завантажити PDF</span>
+        </div>
+
+        <!-- Оновлення документа з жовтою стрічкою на 10 секунд -->
+        <div class="sheet-item" onclick="toggleSheet(false); startDocumentUpdate()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+            <path d="M16 16h5v5"/>
+          </svg>
+          <span>Оновити документ</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== -->
+    <section id="screen-full-info" class="screen">
+      <div class="full-info-handle-bar" onclick="goToScreen('id')" title="Закрити">
+        <div class="full-info-handle"></div>
+      </div>
+
+      <div class="full-info-scroll">
+        <div class="info-card">
+          <div class="info-card-name" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
+          <div class="info-card-role" data-bind="role">Військовозобов’язаний</div>
+
+          <div class="info-photo-row">
+            <div class="photo-box user-photo-container"></div>
+
+            <div class="id-meta-col">
+              <div class="meta-group">
+                <span>Дата народження:</span>
+                <strong data-bind="dob">22.03.1999</strong>
+              </div>
+              <div class="meta-group">
+                <span>РНОКПП:</span>
+                <strong data-bind="rnokpp">3624010596</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-field-block">
+            <div class="info-label">ТЦК та СП:</div>
+            <div class="info-value" data-bind="tck">1 відділ Харківського РТЦК та СП (Дергачі)</div>
+          </div>
+
+          <div class="info-divider"></div>
+
+          <div class="info-kv-row">
+            <span class="info-label">Звання</span>
+            <span class="info-value" data-bind="rank">Солдат</span>
+          </div>
+
+          <div class="info-kv-row">
+            <span class="info-label">ВОС:</span>
+            <span class="info-value" data-bind="vos">999097</span>
+          </div>
+
+          <div class="info-paragraph" data-bind="vosDesc">
+            Потребує проходження базової загальновійськової підготовки,Солдат резерву
+          </div>
+
+          <div class="info-field-block">
+            <div class="info-label">Категорія обліку:</div>
+            <div class="info-value" data-bind="category">Військовозобов'язаний</div>
+          </div>
+
+          <div class="info-field-block">
+            <div class="info-label">Номер в реєстрі Оберіг:</div>
+            <div class="info-value" data-bind="oberig">180220235594604900049</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-field-block">
+            <div class="info-label">Телефон:</div>
+            <div class="info-value" data-bind="phone">+380 98 780 9397</div>
+          </div>
+
+          <div class="info-field-block">
+            <div class="info-label">Адреса проживання:</div>
+            <div class="info-value" data-bind="address">Україна, Харківська, Мала Данилівка, Академічна, б. 4, кв. 183</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="verified-header">
+            <span class="green-check-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <span data-bind="verifiedStatus">Дані уточнено вчасно</span>
+          </div>
+
+          <div class="info-kv-row" style="margin-bottom: 0;">
+            <span class="info-label" style="line-height: 1.3;">Дата останнього<br>уточнення даних:</span>
+            <span class="info-value" data-bind="verifiedDate">20.05.2024</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 5: МЕНЮ ==================== -->
+    <section id="screen-menu" class="screen">
+      <div class="page-title">Меню</div>
+      <div class="app-version">Версія 2.6.0</div>
+
+      <div class="menu-card">
+        <div class="menu-row" onclick="showToast('Активні сесії: 1 пристрій')">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <rect x="6" y="3" width="12" height="18" rx="2.5"/>
+            </svg>
+            <span>Активні сесії</span>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+
+        <div class="menu-row" onclick="showToast('Налаштування застосунку')">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Налаштування</span>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-row" onclick="showToast('Питання та відповіді')">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <circle cx="11" cy="11" r="7.5"/>
+              <path d="M9.2 9.2a2 2 0 0 1 3.7.7c0 1.4-2 1.8-2 3"/>
+              <circle cx="11" cy="15" r="0.6" fill="#181815"/>
+              <path d="M18.5 9.5A8 8 0 0 1 11 19.5"/>
+            </svg>
+            <span>Питання та відповіді</span>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+
+        <div class="menu-row" onclick="showToast('Чат служби підтримки')">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <rect x="3" y="5" width="18" height="14" rx="2.5"/>
+              <path d="M7 9.5c2 2.5 8 2.5 10 0"/>
+              <path d="M7 14.5c2-2.5 8-2.5 10 0"/>
+            </svg>
+            <span>Служба підтримки</span>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+
+        <!-- 4 натискання відкривають вікно редактора -->
+        <div class="menu-row" onclick="handleCopyDeviceClick()">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <rect x="4" y="4" width="10" height="10" rx="2"/>
+              <path d="M10 17v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/>
+            </svg>
+            <span>Копіювати номер пристрою</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-row" onclick="showToast('Камера для сканування QR')">
+          <div class="menu-row-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8" stroke-linecap="round">
+              <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/>
+              <text x="6.5" y="14.5" font-size="7" font-weight="700" fill="#181815" stroke="none">QR</text>
+            </svg>
+            <span>Сканувати документ</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="logout-btn" onclick="goToScreen('pin')">Вийти</button>
+
+      <div class="privacy-link" onclick="showToast('Повідомлення про обробку персональних даних')">
+        Повідомлення про обробку<br>персональних даних
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 6: ВАКАНСІЇ ==================== -->
+    <section id="screen-vacancies" class="screen">
+      <div>
+        <div class="vac-top-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.7" style="cursor:pointer" onclick="showToast('Інформація про сервіс вакансій')">
+            <circle cx="12" cy="12" r="9.5"/>
+            <path d="M9.5 9.5a2.5 2.5 0 0 1 4.8.9c0 1.6-2.3 2.1-2.3 3.4" stroke-linecap="round"/>
+            <circle cx="12" cy="17" r="0.8" fill="#181815" stroke="none"/>
+          </svg>
+        </div>
+
+        <div class="vac-content">
+          <h1>Вакансії</h1>
+          <p>
+            Тут знаходяться актуальні посади для служби в українському війську, надані у співпраці з платформою Lobby X.
+          </p>
+          <p>
+            Це найбільший перелік пропозицій, який допоможе знайти ту, що підходить саме вам. Обирайте варіанти, подавайте заявки у кілька кліків і очікуйте відповіді від бригади
+          </p>
+        </div>
+      </div>
+
+      <div class="vac-bottom">
+        <div class="checkbox-row" onclick="toggleCheckbox(this)">
+          <div class="custom-checkbox"></div>
+          <span>Більше не показувати</span>
+        </div>
+
+        <button class="primary-orange-btn" onclick="showToast('Перехід до переліку вакансій')">
+          Почати
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== ЕКРАН 7: СЕРВІСИ ==================== -->
+    <section id="screen-services" class="screen">
+      <div class="page-title">Сервіси</div>
+
+      <div class="service-item" onclick="showToast('Виправити дані онлайн')">
+        <span>Виправити дані онлайн</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Запит на відстрочку')">
+        <span>Запит на відстрочку</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Направлення на ВЛК')">
+        <span>Направлення на ВЛК</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Розширені дані з реєстру')">
+        <span>Розширені дані з реєстру</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Стати на облік')">
+        <span>Стати на облік</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Уточнити контактні дані')">
+        <span>Уточнити контактні дані</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="service-item" onclick="showToast('Штрафи')">
+        <span>Штрафи</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </section>
+
+    <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ ЗАСТОСУНКУ ==================== -->
+    <nav id="bottom-tabs" class="bottom-tabs">
+      <button class="tab-btn active" data-target="id" onclick="goToScreen('id')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="3" width="14" height="18" rx="2"/>
+          <line x1="5" y1="14" x2="19" y2="14"/>
+          <line x1="5" y1="17.5" x2="19" y2="17.5"/>
+        </svg>
+        <span>Резерв ID</span>
+      </button>
+
+      <button class="tab-btn" data-target="services" onclick="goToScreen('services')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="4" width="6.5" height="6.5" rx="1"/>
+          <rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/>
+          <rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/>
+          <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>
+        </svg>
+        <span>Сервіси</span>
+      </button>
+
+      <button class="tab-btn" data-target="vacancies" onclick="goToScreen('vacancies')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="3" width="14" height="18" rx="2"/>
+          <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" fill="currentColor" stroke="none"/>
+        </svg>
+        <span>Вакансії</span>
+      </button>
+
+      <button class="tab-btn" data-target="menu" onclick="goToScreen('menu')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="18" x2="20" y2="18"/>
+        </svg>
+        <span>Меню</span>
+      </button>
+    </nav>
+
+    <!-- ==================== ПРИХОВАНЕ ВІКНО РЕДАКТОРА ==================== -->
+    <div id="editor-modal" class="editor-modal">
+      <div class="editor-box">
+        <div class="editor-header">
+          <h3>Редактор даних та фото</h3>
+          <button class="editor-close" onclick="closeEditor()">✕</button>
+        </div>
+
+        <div class="editor-body">
+          <div class="editor-photo-row">
+            <div class="editor-photo-preview user-photo-container"></div>
+            <div>
+              <label for="photo-upload-input" class="upload-label-btn">Завантажити фото</label>
+              <input type="file" id="photo-upload-input" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+              <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">Зберігається локально або береться з image.jpg</div>
+            </div>
+          </div>
+
+          <div class="inline-edit-toggle" onclick="toggleInlineEdit()">
+            <span>Редагувати будь-який текст кліком по екрану</span>
+            <input type="checkbox" id="inline-edit-checkbox" style="pointer-events: none; width: 16px; height: 16px;">
+          </div>
+
+          <div class="field-group">
+            <label>Прізвище Ім'я По батькові (через Enter)</label>
+            <textarea id="inp-fullName" rows="3"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Статус під ПІБ (Резерв ID)</label>
+            <input type="text" id="inp-role">
+          </div>
+
+          <div class="field-group">
+            <label>Дата народження</label>
+            <input type="text" id="inp-dob">
+          </div>
+
+          <div class="field-group">
+            <label>Відстрочка до (залиште порожнім, щоб приховати)</label>
+            <textarea id="inp-deferral" rows="2"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Червона верхня плашка (залиште порожнім, щоб приховати)</label>
+            <textarea id="inp-topAlert" rows="2"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Рядок оновлення (біжуча стрічка)</label>
+            <input type="text" id="inp-ticker">
+          </div>
+
+          <div class="field-group">
+            <label>РНОКПП</label>
+            <input type="text" id="inp-rnokpp">
+          </div>
+
+          <div class="field-group">
+            <label>ТЦК та СП</label>
+            <textarea id="inp-tck" rows="2"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Звання</label>
+            <input type="text" id="inp-rank">
+          </div>
+
+          <div class="field-group">
+            <label>ВОС</label>
+            <input type="text" id="inp-vos">
+          </div>
+
+          <div class="field-group">
+            <label>Опис ВОС</label>
+            <textarea id="inp-vosDesc" rows="2"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Категорія обліку</label>
+            <input type="text" id="inp-category">
+          </div>
+
+          <div class="field-group">
+            <label>Номер в реєстрі Оберіг</label>
+            <input type="text" id="inp-oberig">
+          </div>
+
+          <div class="field-group">
+            <label>Телефон</label>
+            <input type="text" id="inp-phone">
+          </div>
+
+          <div class="field-group">
+            <label>Адреса проживання</label>
+            <textarea id="inp-address" rows="2"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Статус уточнення</label>
+            <input type="text" id="inp-verifiedStatus">
+          </div>
+
+          <div class="field-group">
+            <label>Дата останнього уточнення даних</label>
+            <input type="text" id="inp-verifiedDate">
+          </div>
+        </div>
+
+        <div class="editor-footer">
+          <div class="editor-footer-row">
+            <button class="btn-reset" onclick="resetAppData()">Скинути</button>
+            <button class="btn-save" onclick="saveEditorFields()">Зберегти зміни</button>
+          </div>
+          <button class="btn-export-json" onclick="downloadSettingsFile()">Завантажити файл settings.json (для GitHub)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultData = {
+      topAlert: '',
+      fullName: 'Філоненко\nІгор\nМиколайович',
+      role: 'Військовозобов’язаний',
+      dob: '22.03.1999',
+      deferral: 'завершення\nмобілізації',
+      ticker: 'Документ оновлено о 13:58 | 28.08.2026',
+      rnokpp: '3624010596',
+      tck: '1 відділ Харківського РТЦК та СП (Дергачі)',
+      rank: 'Солдат',
+      vos: '999097',
+      vosDesc: 'Потребує проходження базової загальновійськової підготовки,Солдат резерву',
+      category: "Військовозобов'язаний",
+      oberig: '180220235594604900049',
+      phone: '+380 98 780 9397',
+      address: 'Україна, Харківська, Мала Данилівка, Академічна, б. 4, кв. 183',
+      verifiedStatus: 'Дані уточнено вчасно',
+      verifiedDate: '20.05.2024',
+      photoDataUrl: ''
+    };
+
+    let appData = { ...defaultData };
+    let currentScreen = 'splash';
+    let pinBuffer = '';
+    let autoTimer = null;
+    let updateDocTimer = null;
+    let isUpdatingDoc = false;
+    let inlineEditEnabled = false;
+    let githubImageAvailable = false;
+
+    let copyTapCount = 0;
+    let copyTapTimer = null;
+
+    function defaultPhotoSVG() {
+      return `
+        <svg viewBox="0 0 150 190" preserveAspectRatio="xMidYMid slice">
+          <rect width="150" height="190" fill="#F2F3F5"/>
+          <path d="M12 190 C18 152, 42 142, 75 142 C108 142, 132 152, 138 190 Z" fill="#9A7B6D"/>
+          <path d="M32 148 L44 190 L22 190 Z" fill="#6989B8"/>
+          <path d="M118 148 L106 190 L128 190 Z" fill="#6989B8"/>
+          <path d="M44 150 Q75 176 106 150 L106 190 L44 190 Z" fill="#1F2126"/>
+          <rect x="57" y="114" width="36" height="36" rx="10" fill="#AA8575"/>
+          <ellipse cx="75" cy="84" rx="34" ry="44" fill="#B58F7E"/>
+          <path d="M40 78 C38 42, 54 28, 75 28 C96 28, 112 42, 110 78 C108 56, 96 46, 75 46 C54 46, 42 56, 40 78 Z" fill="#251F1D"/>
+          <path d="M52 72 Q61 69 69 72" stroke="#251F1D" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M81 72 Q89 69 98 72" stroke="#251F1D" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <circle cx="61" cy="78" r="3" fill="#251F1D"/>
+          <circle cx="89" cy="78" r="3" fill="#251F1D"/>
+          <path d="M75 78 L72 95 L78 95" stroke="#886455" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M64 107 Q75 110 86 107" stroke="#784E44" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatCurrentDateTime() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      return `Документ оновлено о ${hh}:${min} | ${dd}.${mm}.${yyyy}`;
+    }
+
+    function startDocumentUpdate() {
+      clearTimeout(updateDocTimer);
+      isUpdatingDoc = true;
+
+      const tickerStrip = document.getElementById('ticker-strip');
+      const tickerEl = document.getElementById('ticker-text');
+
+      if (tickerStrip && tickerEl) {
+        tickerStrip.classList.add('updating-mode');
+        const msg = 'Оновлюємо документ • Потрібно почекати';
+        tickerEl.textContent = `${msg} • ${msg} • ${msg} • `;
+      }
+
+      updateDocTimer = setTimeout(() => {
+        isUpdatingDoc = false;
+        appData.ticker = formatCurrentDateTime();
+        persistData();
+
+        if (tickerStrip) {
+          tickerStrip.classList.remove('updating-mode');
+        }
+        applyDataToUI();
+        showToast('Документ оновлено');
+      }, 10000);
+    }
+
+    function applyDataToUI() {
+      document.querySelectorAll('[data-bind]').forEach(el => {
+        const key = el.dataset.bind;
+        if (appData[key] !== undefined) {
+          el.innerHTML = escapeHTML(appData[key]).replace(/\n/g, '<br>');
+        }
+      });
+
+      const hasAlert = Boolean(appData.topAlert && appData.topAlert.trim());
+      const alertBanner = document.getElementById('id-alert-banner');
+      const tickerStrip = document.getElementById('ticker-strip');
+      if (alertBanner) {
+        alertBanner.classList.toggle('hidden', !hasAlert);
+      }
+      if (tickerStrip) {
+        tickerStrip.classList.toggle('alert-mode', hasAlert);
+      }
+
+      const deferralBlock = document.getElementById('deferral-block');
+      if (deferralBlock) {
+        deferralBlock.style.display = (appData.deferral && appData.deferral.trim()) ? 'block' : 'none';
+      }
+
+      const tickerEl = document.getElementById('ticker-text');
+      if (tickerEl && !isUpdatingDoc) {
+        const cleanTicker = appData.ticker.trim();
+        tickerEl.textContent = `${cleanTicker} • ${cleanTicker} • ${cleanTicker} • `;
+      }
+
+      document.querySelectorAll('.user-photo-container').forEach(box => {
+        if (appData.photoDataUrl) {
+          box.innerHTML = `<img src="${appData.photoDataUrl}" alt="Фото">`;
+        } else if (githubImageAvailable) {
+          box.innerHTML = `<img src="image.jpg" alt="Фото">`;
+        } else {
+          box.innerHTML = defaultPhotoSVG();
+        }
+      });
+    }
+
+    async function initAppStorage() {
+      let hasLocal = false;
+      try {
+        const raw = localStorage.getItem('rezerv_ui_data_v6');
+        if (raw) {
+          appData = { ...defaultData, ...JSON.parse(raw) };
+          hasLocal = true;
+        }
+      } catch (e) {}
+
+      if (!hasLocal) {
+        try {
+          const res = await fetch('settings.json', { cache: 'no-store' });
+          if (res.ok) {
+            const remoteData = await res.json();
+            appData = { ...defaultData, ...remoteData };
+          }
+        } catch (e) {}
+      }
+
+      const imgProbe = new Image();
+      imgProbe.onload = () => {
+        githubImageAvailable = true;
+        applyDataToUI();
+      };
+      imgProbe.onerror = () => {
+        githubImageAvailable = false;
+        applyDataToUI();
+      };
+      imgProbe.src = 'image.jpg?v=' + Date.now();
+
+      applyDataToUI();
+    }
+
+    function persistData() {
+      try {
+        localStorage.setItem('rezerv_ui_data_v6', JSON.stringify(appData));
+      } catch (e) {}
+    }
+
+    function downloadSettingsFile() {
+      const jsonStr = JSON.stringify(appData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'settings.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Файл settings.json збережено');
+    }
+
+    function goToScreen(name) {
+      clearTimeout(autoTimer);
+      currentScreen = name;
+
+      document.querySelectorAll('.screen').forEach(sec => {
+        sec.classList.toggle('active', sec.id === 'screen-' + name);
+      });
+
+      const appShell = document.getElementById('app-shell');
+      const bottomTabs = document.getElementById('bottom-tabs');
+      const metaTheme = document.getElementById('meta-theme-color');
+
+      if (name === 'splash') {
+        appShell.style.backgroundColor = '#1E1E1A';
+        document.documentElement.style.backgroundColor = '#1E1E1A';
+        if (metaTheme) metaTheme.setAttribute('content', '#1E1E1A');
+        bottomTabs.classList.remove('visible');
+        autoTimer = setTimeout(() => goToScreen('pin'), 1800);
+      } else if (name === 'pin') {
+        pinBuffer = '';
+        updatePinDots();
+        appShell.style.backgroundColor = '#DDD8C4';
+        document.documentElement.style.backgroundColor = '#DDD8C4';
+        if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
+        bottomTabs.classList.remove('visible');
+      } else if (name === 'full-info') {
+        appShell.style.backgroundColor = '#DDD8C4';
+        document.documentElement.style.backgroundColor = '#DDD8C4';
+        if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
+        bottomTabs.classList.remove('visible');
+      } else {
+        appShell.style.backgroundColor = '#DDD8C4';
+        document.documentElement.style.backgroundColor = '#DDD8C4';
+        if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
+        bottomTabs.classList.add('visible');
+
+        const activeTabName = (name === 'loading') ? 'id' : name;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.target === activeTabName);
+        });
+
+        if (name === 'loading') {
+          autoTimer = setTimeout(() => goToScreen('id'), 1800);
+        }
+      }
+    }
+
+    function handleCardClick() {
+      if (inlineEditEnabled) return;
+      toggleSheet(true);
+    }
+
+    function pressDigit(num) {
+      if (pinBuffer.length >= 4) return;
+      pinBuffer += String(num);
+      updatePinDots();
+
+      if (pinBuffer.length === 4) {
+        setTimeout(() => goToScreen('loading'), 220);
+      }
+    }
+
+    function deleteDigit() {
+      pinBuffer = pinBuffer.slice(0, -1);
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('#pin-dots .pin-dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('filled', idx < pinBuffer.length);
+      });
+    }
+
+    function toggleSheet(open) {
+      document.getElementById('sheet-backdrop').classList.toggle('open', open);
+      document.getElementById('bottom-sheet').classList.toggle('open', open);
+    }
+
+    function toggleCheckbox(el) {
+      el.querySelector('.custom-checkbox').classList.toggle('checked');
+    }
+
+    let toastTimeout = null;
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1800);
+    }
+
+    /* ==================== ЛОГІКА 4 НАТИСКАНЬ І РЕДАКТОРА ==================== */
+    function handleCopyDeviceClick() {
+      copyTapCount++;
+      clearTimeout(copyTapTimer);
+
+      if (copyTapCount >= 4) {
+        copyTapCount = 0;
+        openEditor();
+        return;
+      }
+
+      showToast('Номер пристрою скопійовано');
+      copyTapTimer = setTimeout(() => {
+        copyTapCount = 0;
+      }, 2500);
+    }
+
+    function openEditor() {
+      Object.keys(defaultData).forEach(key => {
+        if (key === 'photoDataUrl') return;
+        const input = document.getElementById('inp-' + key);
+        if (input) input.value = appData[key];
+      });
+      document.getElementById('inline-edit-checkbox').checked = inlineEditEnabled;
+      document.getElementById('editor-modal').classList.add('open');
+    }
+
+    function closeEditor() {
+      document.getElementById('editor-modal').classList.remove('open');
+    }
+
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appData.photoDataUrl = e.target.result;
+        applyDataToUI();
+        persistData();
+        showToast('Фото оновлено та збережено');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveEditorFields() {
+      Object.keys(defaultData).forEach(key => {
+        if (key === 'photoDataUrl') return;
+        const input = document.getElementById('inp-' + key);
+        if (input) appData[key] = input.value;
+      });
+      applyDataToUI();
+      persistData();
+      closeEditor();
+      showToast('Зміни збережено');
+    }
+
+    function resetAppData() {
+      appData = { ...defaultData };
+      localStorage.removeItem('rezerv_ui_data_v6');
+      applyDataToUI();
+      openEditor();
+      showToast('Дані скинуто до початкових');
+    }
+
+    function toggleInlineEdit() {
+      inlineEditEnabled = !inlineEditEnabled;
+      document.getElementById('inline-edit-checkbox').checked = inlineEditEnabled;
+
+      const editableSelectors = [
+        '.id-alert-banner', '.pin-header', '.loading-card h2', '.loading-card p',
+        '.id-header-row h2', '.meta-group span', '.meta-group strong',
+        '.id-role-label', '.id-full-name', '.ticker-content',
+        '.info-card-name', '.info-card-role', '.info-label',
+        '.info-value', '.info-paragraph', '.verified-header span:last-child',
+        '.page-title', '.app-version', '.menu-row-left span',
+        '.vac-content h1', '.vac-content p', '.service-item span'
+      ];
+
+      document.querySelectorAll(editableSelectors.join(',')).forEach(el => {
+        el.setAttribute('contenteditable', inlineEditEnabled ? 'true' : 'false');
+        if (inlineEditEnabled) {
+          el.oninput = () => {
+            const key = el.dataset.bind;
+            if (key && appData[key] !== undefined) {
+              appData[key] = el.innerText;
+              persistData();
+            }
+          };
+        }
+      });
+
+      if (inlineEditEnabled) {
+        closeEditor();
+        showToast('Режим редагування: клікніть по тексту');
+      } else {
+        showToast('Режим редагування вимкнено');
+      }
+    }
+
+    // Запуск
+    initAppStorage();
+    autoTimer = setTimeout(() => goToScreen('pin'), 1800);
+  </script>
+</body>
+</html>
