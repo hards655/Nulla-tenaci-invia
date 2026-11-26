@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" id="meta-theme-color" content="#1E1E1A" />
+  <meta name="theme-color" id="meta-theme-color" content="#DDD8C4" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -39,8 +39,8 @@
       start_url: location.origin + location.pathname,
       scope: new URL('./', location.href).href,
       display: 'standalone',
-      background_color: '#1E1E1A',
-      theme_color: '#1E1E1A',
+      background_color: '#DDD8C4',
+      theme_color: '#DDD8C4',
       icons: [
         {
           src: pngUrl,
@@ -219,138 +219,68 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
-    .resize-handle-right {
+    .resize-handle-right,
+    .resize-handle-left,
+    .resize-handle-bottom,
+    .resize-handle-top,
+    .resize-handle-corner {
       position: absolute;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      touch-action: none;
+      z-index: 265;
+    }
+
+    .resize-handle-right {
       right: -11px;
       top: 50%;
       transform: translateY(-50%);
       width: 18px;
       height: 36px;
-      background: #F38A00;
-      border: 2px solid #FFFFFF;
       border-radius: 999px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      pointer-events: auto;
-      touch-action: none;
       cursor: ew-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 265;
-    }
-
-    .resize-handle-right::after {
-      content: '';
-      width: 2px;
-      height: 14px;
-      background: #181815;
-      border-radius: 2px;
-      box-shadow: 3px 0 0 #181815;
-      margin-left: -3px;
     }
 
     .resize-handle-left {
-      position: absolute;
       left: -11px;
       top: 50%;
       transform: translateY(-50%);
       width: 18px;
       height: 36px;
-      background: #F38A00;
-      border: 2px solid #FFFFFF;
       border-radius: 999px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      pointer-events: auto;
-      touch-action: none;
       cursor: ew-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 265;
-    }
-
-    .resize-handle-left::after {
-      content: '';
-      width: 2px;
-      height: 14px;
-      background: #181815;
-      border-radius: 2px;
-      box-shadow: 3px 0 0 #181815;
-      margin-left: -3px;
     }
 
     .resize-handle-bottom {
-      position: absolute;
       bottom: -11px;
       left: 50%;
       transform: translateX(-50%);
       width: 36px;
       height: 18px;
-      background: #F38A00;
-      border: 2px solid #FFFFFF;
       border-radius: 999px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      pointer-events: auto;
-      touch-action: none;
       cursor: ns-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 265;
-    }
-
-    .resize-handle-bottom::after {
-      content: '';
-      width: 14px;
-      height: 2px;
-      background: #181815;
-      border-radius: 2px;
-      box-shadow: 0 3px 0 #181815;
-      margin-top: -3px;
     }
 
     .resize-handle-top {
-      position: absolute;
       top: -11px;
       left: 50%;
       transform: translateX(-50%);
       width: 36px;
       height: 18px;
-      background: #F38A00;
-      border: 2px solid #FFFFFF;
       border-radius: 999px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      pointer-events: auto;
-      touch-action: none;
       cursor: ns-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 265;
-    }
-
-    .resize-handle-top::after {
-      content: '';
-      width: 14px;
-      height: 2px;
-      background: #181815;
-      border-radius: 2px;
-      box-shadow: 0 3px 0 #181815;
-      margin-top: -3px;
     }
 
     .resize-handle-corner {
-      position: absolute;
       right: -11px;
       bottom: -11px;
       width: 22px;
       height: 22px;
       background: #181815;
-      border: 2px solid #F38A00;
+      border-color: #F38A00;
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-      pointer-events: auto;
-      touch-action: none;
       cursor: nwse-resize;
       z-index: 266;
     }
@@ -400,7 +330,7 @@
       width: 100%;
       height: 100dvh;
       max-height: 100dvh;
-      background-color: var(--bg-dark);
+      background-color: var(--bg-beige);
       font-family: var(--app-font);
       overflow: hidden;
       overscroll-behavior: none;
@@ -415,11 +345,11 @@
       width: 100%;
       height: 100dvh;
       max-height: 100dvh;
-      background-color: var(--bg-dark);
+      background-color: var(--bg-beige);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: background-color 0.25s ease;
+      transition: background-color 0.2s ease;
     }
 
     @media (min-width: 520px) {
@@ -440,7 +370,7 @@
     @keyframes slideInFromRight {
       from {
         opacity: 0.4;
-        transform: translateX(30px);
+        transform: translateX(24px);
       }
       to {
         opacity: 1;
@@ -451,7 +381,7 @@
     @keyframes slideInFromLeft {
       from {
         opacity: 0.4;
-        transform: translateX(-30px);
+        transform: translateX(-24px);
       }
       to {
         opacity: 1;
@@ -466,31 +396,43 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
+      background-color: var(--bg-beige);
       padding-top: var(--safe-top);
-      padding-bottom: calc(68px + var(--safe-bottom));
+      padding-bottom: 12px;
       will-change: transform, opacity;
-    }
-
-    #screen-splash,
-    #screen-pin,
-    #screen-full-info {
-      padding-bottom: var(--safe-bottom);
-    }
-
-    .screen.active {
-      display: flex;
-      animation: slideInFromRight 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    .screen.active.slide-left {
-      animation: slideInFromLeft 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     #screen-splash {
       background-color: var(--bg-dark);
-      cursor: pointer;
       padding-top: 0;
       padding-bottom: 0;
+      cursor: pointer;
+    }
+
+    #screen-pin {
+      background-color: var(--bg-beige);
+      padding: calc(var(--safe-top) + 18px) 24px calc(var(--safe-bottom) + 22px);
+      justify-content: space-between;
+    }
+
+    #screen-full-info {
+      background-color: var(--bg-beige);
+      padding: var(--safe-top) 16px calc(var(--safe-bottom) + 12px);
+      display: none;
+      flex-direction: column;
+    }
+
+    #screen-full-info.active {
+      display: flex;
+    }
+
+    .screen.active {
+      display: flex;
+      animation: slideInFromRight 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .screen.active.slide-left {
+      animation: slideInFromLeft 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .splash-custom-img {
@@ -500,11 +442,6 @@
       height: 100%;
       object-fit: cover;
       display: block;
-    }
-
-    #screen-pin {
-      padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
-      justify-content: space-between;
     }
 
     .pin-header {
@@ -579,8 +516,9 @@
     .top-action-row {
       display: flex;
       justify-content: flex-end;
-      padding: 18px 22px 24px;
+      padding: 10px 22px 16px;
       flex-shrink: 0;
+      background-color: var(--bg-beige);
     }
 
     .notif-pill {
@@ -605,10 +543,11 @@
 
     .card-wrapper {
       flex: 1;
-      padding: 0 22px 14px;
+      padding: 0 22px 10px;
       display: flex;
       flex-direction: column;
       min-height: 0;
+      background-color: var(--bg-beige);
     }
 
     .loading-card {
@@ -715,17 +654,15 @@
       overflow: hidden;
     }
 
-    .qr-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-
+    .qr-box img,
     .qr-box svg {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .qr-box img {
+      object-fit: contain;
     }
 
     .qr-note-box {
@@ -810,17 +747,15 @@
       cursor: pointer;
     }
 
-    .photo-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
+    .photo-box img,
     .photo-box svg {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .photo-box img {
+      object-fit: cover;
     }
 
     .id-meta-col {
@@ -945,7 +880,7 @@
       position: fixed;
       left: 14px;
       right: 14px;
-      bottom: calc(68px + var(--safe-bottom));
+      bottom: calc(66px + var(--safe-bottom));
       background-color: #FFFFFF;
       border-radius: 22px;
       padding: 10px 20px 14px;
@@ -1005,19 +940,8 @@
       transform: translateX(2px);
     }
 
-    #screen-full-info {
-      background-color: var(--bg-beige);
-      padding: var(--safe-top) 16px var(--safe-bottom);
-      display: none;
-      flex-direction: column;
-    }
-
-    #screen-full-info.active {
-      display: flex;
-    }
-
     .full-info-handle-bar {
-      padding: 10px 0 12px;
+      padding: 6px 0 10px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -1035,7 +959,7 @@
     .full-info-scroll {
       flex: 1;
       overflow-y: auto;
-      padding-bottom: 20px;
+      padding-bottom: 16px;
       scrollbar-width: none;
     }
 
@@ -1149,7 +1073,7 @@
     }
 
     #screen-menu {
-      padding: calc(var(--safe-top) + 16px) 22px 14px;
+      padding: calc(var(--safe-top) + 10px) 22px 14px;
       overflow-y: auto;
     }
 
@@ -1237,7 +1161,7 @@
     }
 
     #screen-vacancies {
-      padding: calc(var(--safe-top) + 12px) 22px calc(80px + var(--safe-bottom));
+      padding: calc(var(--safe-top) + 10px) 22px 14px;
       justify-content: space-between;
     }
 
@@ -1332,7 +1256,7 @@
     }
 
     #screen-services {
-      padding: calc(var(--safe-top) + 14px) 22px 14px;
+      padding: calc(var(--safe-top) + 10px) 22px 14px;
       overflow-y: auto;
     }
 
@@ -1361,30 +1285,23 @@
       border-bottom: none;
     }
 
+    /* Нижня панель: суцільний білий фон до нижнього краю екрана */
     .bottom-tabs {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
       width: 100%;
+      flex-shrink: 0;
       background-color: #FFFFFF;
-      box-shadow: 0 42px 0 42px #FFFFFF;
+      box-shadow: 0 64px 0 64px #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 8px 4px calc(18px + var(--safe-bottom));
+      padding: 10px 4px calc(12px + var(--safe-bottom));
       z-index: 60;
       border: none;
     }
 
     @media (min-width: 520px) {
       .bottom-tabs {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        padding-bottom: 18px;
+        padding-bottom: 14px;
       }
     }
 
@@ -1829,7 +1746,7 @@
   <div id="app-shell" class="app-shell">
     <div id="toast" class="toast">Скопійовано</div>
 
-    <!-- ==================== ЕКРАН 1: SPLASH (ЛИШЕ load.jpg) ==================== -->
+    <!-- ==================== ЕКРАН 1: SPLASH ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
       <img id="splash-custom-img" class="splash-custom-img" src="load.jpg" alt="">
     </section>
@@ -3085,6 +3002,18 @@
       showToast('Файл settings.json збережено');
     }
 
+    function syncShellColors(screenName) {
+      const appShell = document.getElementById('app-shell');
+      const metaTheme = document.getElementById('meta-theme-color');
+      const isSplash = screenName === 'splash';
+      const topColor = isSplash ? '#1E1E1A' : '#DDD8C4';
+
+      appShell.style.backgroundColor = topColor;
+      document.documentElement.style.backgroundColor = topColor;
+      document.body.style.backgroundColor = topColor;
+      if (metaTheme) metaTheme.setAttribute('content', topColor);
+    }
+
     function goToScreen(name) {
       clearTimeout(autoTimer);
       toggleSheet(false);
@@ -3117,37 +3046,20 @@
         }
       });
 
-      const appShell = document.getElementById('app-shell');
+      syncShellColors(name);
+
       const bottomTabs = document.getElementById('bottom-tabs');
-      const metaTheme = document.getElementById('meta-theme-color');
 
       if (name === 'splash') {
-        appShell.style.backgroundColor = '#1E1E1A';
-        document.documentElement.style.backgroundColor = '#1E1E1A';
-        document.body.style.backgroundColor = '#1E1E1A';
-        if (metaTheme) metaTheme.setAttribute('content', '#1E1E1A');
         bottomTabs.classList.remove('visible');
         autoTimer = setTimeout(() => goToScreen('pin'), 1800);
       } else if (name === 'pin') {
         pinBuffer = '';
         updatePinDots();
-        appShell.style.backgroundColor = '#DDD8C4';
-        document.documentElement.style.backgroundColor = '#DDD8C4';
-        document.body.style.backgroundColor = '#DDD8C4';
-        if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
         bottomTabs.classList.remove('visible');
       } else if (name === 'full-info') {
-        appShell.style.backgroundColor = '#DDD8C4';
-        document.documentElement.style.backgroundColor = '#DDD8C4';
-        document.body.style.backgroundColor = '#DDD8C4';
-        if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
         bottomTabs.classList.remove('visible');
       } else {
-        appShell.style.backgroundColor = '#DDD8C4';
-        const navBg = '#FFFFFF';
-        document.documentElement.style.backgroundColor = navBg;
-        document.body.style.backgroundColor = navBg;
-        if (metaTheme) metaTheme.setAttribute('content', navBg);
         bottomTabs.classList.add('visible');
 
         const activeTabName = (name === 'loading') ? 'id' : name;
@@ -3603,6 +3515,7 @@
       }
     }
 
+    syncShellColors('splash');
     initAppStorage();
     autoTimer = setTimeout(() => goToScreen('pin'), 1800);
   </script>
