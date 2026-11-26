@@ -65,29 +65,11 @@
         }
       }
 
-      function createFallbackPngIcon(size) {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#1E1E1A';
-          ctx.fillRect(0, 0, size, size);
-          ctx.fillStyle = '#DDD8C4';
-          ctx.font = `bold ${Math.round(size * 0.24)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('Р+', size / 2, size / 2);
-          return canvas.toDataURL('image/png');
-        } catch (e) {
-          return '';
-        }
-      }
-
-      function setupManifest(icon192, icon512) {
+      function setupManifest(iconSrc) {
         try {
           const startUrl = getAbsolutePageUrl();
           const scopeUrl = getAbsoluteScopeUrl();
+          const icoHref = iconSrc || new URL('app.ico', window.location.href).href;
           const manifest = {
             id: startUrl,
             name: 'Резерв+',
@@ -102,15 +84,15 @@
             theme_color: '#1E1E1A',
             icons: [
               {
-                src: icon192,
+                src: icoHref,
                 sizes: '192x192',
-                type: 'image/png',
+                type: 'image/x-icon',
                 purpose: 'any'
               },
               {
-                src: icon512 || icon192,
+                src: icoHref,
                 sizes: '512x512',
-                type: 'image/png',
+                type: 'image/x-icon',
                 purpose: 'any maskable'
               }
             ]
@@ -122,39 +104,12 @@
         } catch (e) {}
       }
 
-      const fallback192 = createFallbackPngIcon(192);
-      const fallback512 = createFallbackPngIcon(512);
-      setupManifest(fallback192, fallback512);
-
       const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
-      const icoImg = new Image();
-      icoImg.crossOrigin = 'anonymous';
-      icoImg.onload = function() {
-        try {
-          const c192 = document.createElement('canvas');
-          c192.width = 192;
-          c192.height = 192;
-          c192.getContext('2d').drawImage(icoImg, 0, 0, 192, 192);
-          const png192 = c192.toDataURL('image/png');
-
-          const c512 = document.createElement('canvas');
-          c512.width = 512;
-          c512.height = 512;
-          c512.getContext('2d').drawImage(icoImg, 0, 0, 512, 512);
-          const png512 = c512.toDataURL('image/png');
-
-          const appleIcon = document.getElementById('apple-touch-icon');
-          if (appleIcon) appleIcon.href = png192;
-
-          const favIcon = document.getElementById('favicon-icon');
-          if (favIcon) {
-            favIcon.type = 'image/png';
-            favIcon.href = png192;
-          }
-          setupManifest(png192, png512);
-        } catch (e) {}
-      };
-      icoImg.src = rawIcoUrl;
+      const appleIcon = document.getElementById('apple-touch-icon');
+      if (appleIcon) appleIcon.href = rawIcoUrl;
+      const favIcon = document.getElementById('favicon-icon');
+      if (favIcon) favIcon.href = rawIcoUrl;
+      setupManifest(rawIcoUrl);
 
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
         window.addEventListener('load', () => {
