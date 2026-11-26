@@ -250,7 +250,6 @@
       z-index: 60;
     }
 
-    /* ==================== РАМКА ІНСПЕКТОРА + БІЧНІ РУЧКИ ШИРИНИ ТА ВИСОТИ ==================== */
     .component-inspector-box {
       position: fixed;
       border: 2px solid #F38A00;
@@ -573,7 +572,6 @@
       animation: slideInFromLeft 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
-    /* ==================== ЕКРАН 1: SPLASH ==================== */
     #screen-splash {
       background-color: var(--bg-dark);
       cursor: pointer;
@@ -590,7 +588,6 @@
       display: block;
     }
 
-    /* ==================== ЕКРАН 2: PIN CODE ==================== */
     #screen-pin {
       padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
       justify-content: space-between;
@@ -669,7 +666,6 @@
       cursor: pointer;
     }
 
-    /* ==================== ВЕРХНІЙ РЯДОК (СПОВІЩЕННЯ) ==================== */
     .top-action-row {
       display: flex;
       justify-content: flex-end;
@@ -697,7 +693,6 @@
       transform: scale(0.96);
     }
 
-    /* ==================== ЕКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
       padding: 0 22px 14px;
@@ -736,7 +731,6 @@
       color: var(--text-main);
     }
 
-    /* ==================== ЕКРАН 4: РЕЗЕРВ ID + 3D ПЕРЕГОРТАННЯ СПРАВА НАЛІВО ==================== */
     .id-flip-scene {
       flex: 1;
       perspective: 1300px;
@@ -1022,7 +1016,6 @@
       transform: scale(0.93);
     }
 
-    /* ==================== СПЛИВАЮЧЕ МЕНЮ ТА КОЛОНКА «ПЕРЕГЛЯНУТИ ДОКУМЕНТ» ==================== */
     .sheet-backdrop {
       position: fixed;
       inset: 0;
@@ -1106,7 +1099,6 @@
       transform: translateX(2px);
     }
 
-    /* ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
     #screen-full-info {
       background-color: var(--bg-beige);
       padding: var(--safe-top) 16px var(--safe-bottom);
@@ -1255,7 +1247,6 @@
       flex-shrink: 0;
     }
 
-    /* ==================== ЕКРАН 5: МЕНЮ ==================== */
     #screen-menu {
       padding: calc(var(--safe-top) + 16px) 22px 14px;
       overflow-y: auto;
@@ -1348,7 +1339,6 @@
       padding-bottom: 8px;
     }
 
-    /* ==================== ЕКРАН 6: ВАКАНСІЇ (З ЗАКРІПЛЕНОЮ ПОМАРАНЧЕВОЮ КНОПКОЮ) ==================== */
     #screen-vacancies {
       padding: calc(var(--safe-top) + 12px) 22px calc(80px + var(--safe-bottom));
       justify-content: space-between;
@@ -1449,7 +1439,6 @@
       transform: scale(0.98);
     }
 
-    /* ==================== ЕКРАН 7: СЕРВІСИ ==================== */
     #screen-services {
       padding: calc(var(--safe-top) + 14px) 22px 14px;
       overflow-y: auto;
@@ -1484,7 +1473,6 @@
       border-bottom: none;
     }
 
-    /* ==================== НИЖНЯ НАВІГАЦІЯ ==================== */
     .bottom-tabs {
       position: fixed;
       left: 0;
@@ -2755,7 +2743,6 @@
     let githubQrAvailable = false;
     let isCardFlipped = false;
     let deferredInstallPrompt = null;
-    let pendingInstallAfterPrompt = false;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
@@ -2766,31 +2753,9 @@
         : (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
     }
 
-    async function runDeferredInstallPrompt() {
-      if (!deferredInstallPrompt) return false;
-      const promptEvent = deferredInstallPrompt;
-      deferredInstallPrompt = null;
-      try {
-        await promptEvent.prompt();
-        const { outcome } = await promptEvent.userChoice;
-        if (outcome === 'accepted') {
-          if (typeof window.__syncStandaloneClass === 'function') {
-            window.__syncStandaloneClass();
-          }
-        }
-        return true;
-      } catch (err) {
-        return false;
-      }
-    }
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
-      if (pendingInstallAfterPrompt) {
-        pendingInstallAfterPrompt = false;
-        runDeferredInstallPrompt();
-      }
     });
 
     async function triggerInstallApp() {
@@ -2802,17 +2767,15 @@
       }
 
       if (deferredInstallPrompt) {
-        await runDeferredInstallPrompt();
-        return;
+        try {
+          await deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          if (outcome === 'accepted' && typeof window.__syncStandaloneClass === 'function') {
+            window.__syncStandaloneClass();
+          }
+        } catch (err) {}
       }
-
-      pendingInstallAfterPrompt = true;
-      setTimeout(() => {
-        if (pendingInstallAfterPrompt && !deferredInstallPrompt) {
-          pendingInstallAfterPrompt = false;
-          showToast('Встановлення недоступне у поточному вікні браузера');
-        }
-      }, 1500);
     }
 
     function getElementCaption(id, fallbackName = '') {
