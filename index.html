@@ -16,6 +16,37 @@
 
   <script>
     (function() {
+      function isStandaloneMode() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      }
+
+      function syncStandaloneClass() {
+        const standalone = isStandaloneMode();
+        document.documentElement.classList.toggle('is-standalone', standalone);
+        document.body.classList.toggle('is-standalone', standalone);
+        const installCard = document.getElementById('menu-card-install');
+        if (installCard) {
+          installCard.style.display = standalone ? 'none' : '';
+        }
+      }
+
+      window.__isStandaloneMode = isStandaloneMode;
+      window.__syncStandaloneClass = syncStandaloneClass;
+
+      syncStandaloneClass();
+      window.addEventListener('DOMContentLoaded', syncStandaloneClass);
+      window.addEventListener('appinstalled', () => {
+        syncStandaloneClass();
+      });
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(display-mode: standalone)');
+        if (mq.addEventListener) {
+          mq.addEventListener('change', syncStandaloneClass);
+        } else if (mq.addListener) {
+          mq.addListener(syncStandaloneClass);
+        }
+      }
+
       function setupManifest(iconUrl) {
         try {
           const manifest = {
@@ -149,6 +180,11 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
+    html.is-standalone,
+    body.is-standalone {
+      --safe-bottom: 0px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -188,6 +224,23 @@
 
     .component-inspector-box.visible {
       display: block;
+    }
+
+    .inspector-caption-badge {
+      position: absolute;
+      left: 0;
+      top: -22px;
+      background: #F38A00;
+      color: #181815;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      white-space: nowrap;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
     .mini-slider-pill {
@@ -302,14 +355,24 @@
       position: relative;
       overflow: hidden;
       padding-top: var(--safe-top);
-      padding-bottom: calc(74px + var(--safe-bottom));
+      padding-bottom: calc(68px + var(--safe-bottom));
       will-change: transform, opacity;
+    }
+
+    html.is-standalone .screen {
+      padding-bottom: 64px;
     }
 
     #screen-splash,
     #screen-pin,
     #screen-full-info {
       padding-bottom: var(--safe-bottom);
+    }
+
+    html.is-standalone #screen-splash,
+    html.is-standalone #screen-pin,
+    html.is-standalone #screen-full-info {
+      padding-bottom: 0;
     }
 
     .screen.active {
@@ -342,6 +405,10 @@
     #screen-pin {
       padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
       justify-content: space-between;
+    }
+
+    html.is-standalone #screen-pin {
+      padding-bottom: 24px;
     }
 
     .pin-header {
@@ -786,7 +853,7 @@
       position: fixed;
       left: 14px;
       right: 14px;
-      bottom: calc(74px + var(--safe-bottom));
+      bottom: calc(68px + var(--safe-bottom));
       background-color: #FFFFFF;
       border-radius: 22px;
       padding: 10px 20px 14px;
@@ -796,6 +863,10 @@
       transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
       z-index: 50;
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    html.is-standalone .bottom-sheet {
+      bottom: 64px;
     }
 
     .bottom-sheet.open {
@@ -809,7 +880,7 @@
         position: absolute;
         left: 14px;
         right: 14px;
-        bottom: 70px;
+        bottom: 64px;
       }
     }
 
@@ -852,6 +923,11 @@
       padding: var(--safe-top) 16px var(--safe-bottom);
       display: none;
       flex-direction: column;
+    }
+
+    html.is-standalone #screen-full-info {
+      padding-top: 0;
+      padding-bottom: 0;
     }
 
     #screen-full-info.active {
@@ -996,6 +1072,10 @@
       overflow-y: auto;
     }
 
+    html.is-standalone #screen-menu {
+      padding-top: 16px;
+    }
+
     .page-title {
       font-size: 26px;
       font-weight: 500;
@@ -1016,6 +1096,10 @@
       border-radius: 16px;
       margin-bottom: 12px;
       overflow: hidden;
+    }
+
+    html.is-standalone #menu-card-install {
+      display: none !important;
     }
 
     .menu-row {
@@ -1077,8 +1161,13 @@
 
     /* ==================== ЕКРАН 6: ВАКАНСІЇ (З ЗАКРІПЛЕНОЮ ПОМАРАНЧЕВОЮ КНОПКОЮ) ==================== */
     #screen-vacancies {
-      padding: calc(var(--safe-top) + 12px) 22px calc(86px + var(--safe-bottom));
+      padding: calc(var(--safe-top) + 12px) 22px calc(80px + var(--safe-bottom));
       justify-content: space-between;
+    }
+
+    html.is-standalone #screen-vacancies {
+      padding-top: 12px;
+      padding-bottom: 76px;
     }
 
     .vac-scroll-area {
@@ -1177,6 +1266,10 @@
       overflow-y: auto;
     }
 
+    html.is-standalone #screen-services {
+      padding-top: 14px;
+    }
+
     #screen-services .page-title {
       margin-bottom: 14px;
     }
@@ -1202,7 +1295,7 @@
       border-bottom: none;
     }
 
-    /* ==================== ПОВНІСТЮ БІЛА НИЖНЯ НАВІГАЦІЯ ТА ЗАФАРБОВУВАННЯ ІКОНОК ==================== */
+    /* ==================== НИЖНЯ НАВІГАЦІЯ: БІЛИЙ ФОН У БРАУЗЕРІ, БЕЗ ЗАЙВОГО ВІДСТУПУ У ДОДАТКУ ==================== */
     .bottom-tabs {
       position: fixed;
       left: 0;
@@ -1214,9 +1307,14 @@
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 8px 4px calc(14px + var(--safe-bottom));
+      padding: 8px 4px calc(12px + var(--safe-bottom));
       z-index: 60;
       border: none;
+    }
+
+    html.is-standalone .bottom-tabs {
+      box-shadow: none;
+      padding: 8px 4px 8px;
     }
 
     @media (min-width: 520px) {
@@ -1226,7 +1324,10 @@
         right: 0;
         bottom: 0;
         width: 100%;
-        padding-bottom: 14px;
+        padding-bottom: 12px;
+      }
+      html.is-standalone .bottom-tabs {
+        padding-bottom: 8px;
       }
     }
 
@@ -1315,6 +1416,11 @@
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
     }
 
+    .lt-btn-caption {
+      background: #FFFFFF;
+      color: #181815;
+    }
+
     .lt-btn-reset {
       background: rgba(35, 34, 30, 0.9);
       color: #FFFFFF;
@@ -1323,6 +1429,48 @@
     .lt-btn-done {
       background: #F38A00;
       color: #181815;
+    }
+
+    .caption-popup {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(340px, calc(100vw - 32px));
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      z-index: 350;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .caption-popup.open {
+      display: flex;
+    }
+
+    .caption-popup h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .caption-popup input {
+      width: 100%;
+      border: 1px solid #D4CFC0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text-main);
+      user-select: text;
+    }
+
+    .caption-popup-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
     }
 
     .editor-modal {
@@ -1487,6 +1635,38 @@
       font-size: 13px;
       color: var(--text-main);
       background: #FFFFFF;
+    }
+
+    .captions-list-box {
+      background: #F7F5EE;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .caption-item-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .caption-item-row label {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .caption-item-row input {
+      width: 100%;
+      border: 1px solid #D4CFC0;
+      border-radius: 7px;
+      padding: 6px 9px;
+      font-size: 12px;
+      color: var(--text-main);
+      background: #FFFFFF;
+      user-select: text;
     }
 
     .field-group {
@@ -1874,7 +2054,7 @@
       <div class="page-title" data-ui-id="menu-title" data-ui-name="Заголовок Меню">Меню</div>
       <div class="app-version" data-ui-id="menu-version" data-ui-name="Версія застосунку">Версія 2.6.0</div>
 
-      <div class="menu-card" data-ui-id="menu-card-install" data-ui-name="Картка встановлення додатка">
+      <div class="menu-card" id="menu-card-install" data-ui-id="menu-card-install" data-ui-name="Картка встановлення додатка">
         <div class="menu-row" onclick="triggerInstallApp()">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -2181,7 +2361,7 @@
           </div>
 
           <div class="inline-edit-toggle" onclick="startLayoutEditMode()">
-            <span>Мініповзунок розміру на кожному компоненті (без панелі)</span>
+            <span>Мініповзунок розміру та колонтитул компонента</span>
             <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Увімкнути</span>
           </div>
 
@@ -2189,6 +2369,9 @@
             <span>Редагувати будь-який текст кліком по екрану</span>
             <input type="checkbox" id="inline-edit-checkbox" style="pointer-events: none; width: 16px; height: 16px;">
           </div>
+
+          <div class="editor-section-title">Колонтитули всіх елементів</div>
+          <div id="element-captions-list" class="captions-list-box"></div>
 
           <div class="field-group">
             <label>Прізвище Ім'я По батькові (через Enter)</label>
@@ -2288,6 +2471,7 @@
   </div>
 
   <div id="resize-overlay" class="component-inspector-box">
+    <div id="inspector-caption-badge" class="inspector-caption-badge"></div>
     <div id="mini-slider-pill" class="mini-slider-pill" title="Пропорційний розмір компонента">
       <input
         id="component-scale-slider"
@@ -2303,8 +2487,19 @@
   </div>
 
   <div id="layout-toolbar" class="layout-mini-controls">
+    <button class="lt-mini-btn lt-btn-caption" onclick="openSelectedCaptionPopup()">Колонтитул</button>
     <button class="lt-mini-btn lt-btn-reset" onclick="resetSelectedElementLayout()">Скинути</button>
     <button class="lt-mini-btn lt-btn-done" onclick="stopLayoutEditMode()">Готово</button>
+  </div>
+
+  <div id="caption-popup" class="caption-popup">
+    <h4>Редагувати колонтитул елемента</h4>
+    <div id="caption-popup-id" style="font-size: 11px; color: #5C594E;"></div>
+    <input type="text" id="caption-popup-input" placeholder="Введіть колонтитул елемента">
+    <div class="caption-popup-actions">
+      <button class="btn-reset" style="padding: 8px 14px; font-size: 12px;" onclick="closeCaptionPopup()">Скасувати</button>
+      <button class="btn-save" style="flex: initial; padding: 8px 16px; font-size: 12px;" onclick="saveCaptionPopup()">Зберегти</button>
+    </div>
   </div>
 
   <script>
@@ -2334,7 +2529,8 @@
       fontFamily: 'e-Ukraine',
       customFontDataUrl: '',
       globalScale: 100,
-      customLayouts: {}
+      customLayouts: {},
+      elementCaptions: {}
     };
 
     const FONT_MAP = {
@@ -2348,7 +2544,7 @@
 
     const TAB_ORDER = ['id', 'services', 'vacancies', 'menu'];
     const CACHE_BUSTER = Date.now();
-    let appData = { ...defaultData, customLayouts: {} };
+    let appData = { ...defaultData, customLayouts: {}, elementCaptions: {} };
     let currentScreen = 'splash';
     let pinBuffer = '';
     let autoTimer = null;
@@ -2356,6 +2552,7 @@
     let isUpdatingDoc = false;
     let inlineEditEnabled = false;
     let layoutEditMode = false;
+    let selectedUiId = null;
     let githubImageAvailable = false;
     let githubQrAvailable = false;
     let isCardFlipped = false;
@@ -2364,15 +2561,20 @@
     let copyTapCount = 0;
     let copyTapTimer = null;
 
+    function isStandaloneApp() {
+      return typeof window.__isStandaloneMode === 'function'
+        ? window.__isStandaloneMode()
+        : (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
     });
 
     async function triggerInstallApp() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      if (isStandalone) {
-        showToast('Додаток уже встановлено');
+      if (isStandaloneApp()) {
+        if (typeof window.__syncStandaloneClass === 'function') window.__syncStandaloneClass();
         return;
       }
 
@@ -2394,6 +2596,104 @@
       } else {
         showToast('У меню браузера (⋮) оберіть «Встановити додаток»');
       }
+    }
+
+    function getElementCaption(id, fallbackName = '') {
+      if (!appData.elementCaptions) appData.elementCaptions = {};
+      if (appData.elementCaptions[id] !== undefined && appData.elementCaptions[id] !== '') {
+        return appData.elementCaptions[id];
+      }
+      return fallbackName || id;
+    }
+
+    function applyElementCaptions() {
+      if (!appData.elementCaptions) appData.elementCaptions = {};
+      document.querySelectorAll('[data-ui-id]').forEach(el => {
+        const id = el.dataset.uiId;
+        if (!el.dataset.defaultName) {
+          el.dataset.defaultName = el.getAttribute('data-ui-name') || id;
+        }
+        const caption = getElementCaption(id, el.dataset.defaultName);
+        el.setAttribute('data-ui-name', caption);
+      });
+      updateResizeOverlay();
+    }
+
+    function openSelectedCaptionPopup() {
+      if (!selectedUiId) {
+        showToast('Спочатку натисніть на компонент');
+        return;
+      }
+      const el = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
+      const fallback = el ? (el.dataset.defaultName || selectedUiId) : selectedUiId;
+      document.getElementById('caption-popup-id').textContent = `ID: ${selectedUiId}`;
+      document.getElementById('caption-popup-input').value = getElementCaption(selectedUiId, fallback);
+      document.getElementById('caption-popup').classList.add('open');
+      setTimeout(() => document.getElementById('caption-popup-input').focus(), 40);
+    }
+
+    function closeCaptionPopup() {
+      document.getElementById('caption-popup').classList.remove('open');
+    }
+
+    function saveCaptionPopup() {
+      if (!selectedUiId) return;
+      const val = document.getElementById('caption-popup-input').value.trim();
+      const el = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
+      const fallback = el ? (el.dataset.defaultName || selectedUiId) : selectedUiId;
+      if (!appData.elementCaptions) appData.elementCaptions = {};
+      if (val && val !== fallback) {
+        appData.elementCaptions[selectedUiId] = val;
+      } else {
+        delete appData.elementCaptions[selectedUiId];
+      }
+      applyElementCaptions();
+      persistData();
+      closeCaptionPopup();
+      showToast('Колонтитул збережено');
+    }
+
+    function renderCaptionsListInEditor() {
+      const container = document.getElementById('element-captions-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      document.querySelectorAll('[data-ui-id]').forEach(el => {
+        const id = el.dataset.uiId;
+        if (!el.dataset.defaultName) {
+          el.dataset.defaultName = el.getAttribute('data-ui-name') || id;
+        }
+        const row = document.createElement('div');
+        row.className = 'caption-item-row';
+
+        const lbl = document.createElement('label');
+        lbl.textContent = `${el.dataset.defaultName} (${id})`;
+
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.dataset.captionId = id;
+        inp.value = getElementCaption(id, el.dataset.defaultName);
+
+        row.appendChild(lbl);
+        row.appendChild(inp);
+        container.appendChild(row);
+      });
+    }
+
+    function saveCaptionsFromEditor() {
+      if (!appData.elementCaptions) appData.elementCaptions = {};
+      document.querySelectorAll('#element-captions-list input[data-caption-id]').forEach(inp => {
+        const id = inp.dataset.captionId;
+        const val = inp.value.trim();
+        const el = document.querySelector(`[data-ui-id="${id}"]`);
+        const fallback = el ? (el.dataset.defaultName || id) : id;
+        if (val && val !== fallback) {
+          appData.elementCaptions[id] = val;
+        } else {
+          delete appData.elementCaptions[id];
+        }
+      });
+      applyElementCaptions();
     }
 
     function defaultQrSVG() {
@@ -2582,7 +2882,11 @@
     }
 
     function applyDataToUI() {
+      if (typeof window.__syncStandaloneClass === 'function') {
+        window.__syncStandaloneClass();
+      }
       applyFontSettings();
+      applyElementCaptions();
 
       document.querySelectorAll('[data-bind]').forEach(el => {
         const key = el.dataset.bind;
@@ -2662,7 +2966,12 @@
         const raw = localStorage.getItem('rezerv_ui_data_v20');
         if (raw) {
           const parsed = JSON.parse(raw);
-          appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
+          appData = {
+            ...defaultData,
+            ...parsed,
+            customLayouts: parsed.customLayouts || {},
+            elementCaptions: parsed.elementCaptions || {}
+          };
           hasLocal = true;
         }
       } catch (e) {}
@@ -2672,7 +2981,12 @@
           const res = await fetch('settings.json?v=' + CACHE_BUSTER, { cache: 'no-store' });
           if (res.ok) {
             const remoteData = await res.json();
-            appData = { ...defaultData, ...remoteData, customLayouts: remoteData.customLayouts || {} };
+            appData = {
+              ...defaultData,
+              ...remoteData,
+              customLayouts: remoteData.customLayouts || {},
+              elementCaptions: remoteData.elementCaptions || {}
+            };
           }
         } catch (e) {}
       }
@@ -2757,6 +3071,7 @@
       const appShell = document.getElementById('app-shell');
       const bottomTabs = document.getElementById('bottom-tabs');
       const metaTheme = document.getElementById('meta-theme-color');
+      const standalone = isStandaloneApp();
 
       if (name === 'splash') {
         appShell.style.backgroundColor = '#1E1E1A';
@@ -2781,9 +3096,10 @@
         bottomTabs.classList.remove('visible');
       } else {
         appShell.style.backgroundColor = '#DDD8C4';
-        document.documentElement.style.backgroundColor = '#FFFFFF';
-        document.body.style.backgroundColor = '#FFFFFF';
-        if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
+        const navBg = standalone ? '#DDD8C4' : '#FFFFFF';
+        document.documentElement.style.backgroundColor = navBg;
+        document.body.style.backgroundColor = navBg;
+        if (metaTheme) metaTheme.setAttribute('content', navBg);
         bottomTabs.classList.add('visible');
 
         const activeTabName = (name === 'loading') ? 'id' : name;
@@ -2862,12 +3178,13 @@
       layoutEditMode = true;
       document.body.classList.add('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.add('open');
-      showToast('Натисніть на компонент для мініповзунка');
+      showToast('Натисніть на компонент для мініповзунка та колонтитула');
     }
 
     function stopLayoutEditMode() {
       layoutEditMode = false;
       selectedUiId = null;
+      closeCaptionPopup();
       document.body.classList.remove('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.remove('open');
       document.getElementById('resize-overlay').classList.remove('visible');
@@ -2902,6 +3219,7 @@
     function updateResizeOverlay() {
       const overlay = document.getElementById('resize-overlay');
       const pill = document.getElementById('mini-slider-pill');
+      const badge = document.getElementById('inspector-caption-badge');
       if (!overlay || !pill) return;
 
       if (!layoutEditMode || !selectedUiId) {
@@ -2919,6 +3237,10 @@
       if (rect.width === 0 && rect.height === 0) {
         overlay.classList.remove('visible');
         return;
+      }
+
+      if (badge) {
+        badge.textContent = getElementCaption(selectedUiId, targetEl.dataset.defaultName || selectedUiId);
       }
 
       overlay.style.left = rect.left + 'px';
@@ -2951,6 +3273,10 @@
         return;
       }
       delete appData.customLayouts[selectedUiId];
+      if (appData.elementCaptions) {
+        delete appData.elementCaptions[selectedUiId];
+      }
+      applyElementCaptions();
       applyCustomLayouts();
       updateResizeOverlay();
       persistData();
@@ -2961,7 +3287,11 @@
 
     document.addEventListener('pointerdown', (e) => {
       if (!layoutEditMode) return;
-      if (e.target.closest('#layout-toolbar') || e.target.closest('#mini-slider-pill')) return;
+      if (
+        e.target.closest('#layout-toolbar') ||
+        e.target.closest('#mini-slider-pill') ||
+        e.target.closest('#caption-popup')
+      ) return;
 
       const targetEl = e.target.closest('[data-ui-id]');
       if (!targetEl) return;
@@ -3028,12 +3358,14 @@
     }
 
     function openEditor() {
-      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'elementCaptions', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
         if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
         if (input) input.value = appData[key];
       });
+
+      renderCaptionsListInEditor();
 
       const fontSel = document.getElementById('inp-fontFamily');
       if (fontSel) fontSel.value = appData.fontFamily || 'e-Ukraine';
@@ -3089,12 +3421,13 @@
     }
 
     function saveEditorFields() {
-      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'elementCaptions', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
         if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
         if (input) appData[key] = input.value;
       });
+      saveCaptionsFromEditor();
       applyDataToUI();
       persistData();
       closeEditor();
@@ -3102,11 +3435,11 @@
     }
 
     function resetAppData() {
-      appData = { ...defaultData, customLayouts: {} };
+      appData = { ...defaultData, customLayouts: {}, elementCaptions: {} };
       localStorage.removeItem('rezerv_ui_data_v20');
       applyDataToUI();
       openEditor();
-      showToast('Дані, QR, шрифт та позиції скинуто');
+      showToast('Дані, QR, шрифт, колонтитули та позиції скинуто');
     }
 
     function toggleInlineEdit() {
