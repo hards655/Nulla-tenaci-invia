@@ -178,8 +178,8 @@
 
     html, body {
       width: 100%;
-      height: 100%;
       height: 100dvh;
+      max-height: 100dvh;
       background-color: var(--bg-dark);
       font-family: var(--app-font);
       overflow: hidden;
@@ -193,13 +193,13 @@
     .app-shell {
       position: relative;
       width: 100%;
-      height: 100%;
       height: 100dvh;
+      max-height: 100dvh;
       background-color: var(--bg-dark);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.25s ease;
     }
 
     @media (min-width: 520px) {
@@ -217,17 +217,53 @@
       }
     }
 
+    @keyframes slideInFromRight {
+      from {
+        opacity: 0.4;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInFromLeft {
+      from {
+        opacity: 0.4;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
     .screen {
       display: none;
       flex: 1;
+      min-height: 0;
       flex-direction: column;
       position: relative;
       overflow: hidden;
       padding-top: var(--safe-top);
+      padding-bottom: calc(74px + var(--safe-bottom));
+      will-change: transform, opacity;
+    }
+
+    #screen-splash,
+    #screen-pin,
+    #screen-full-info {
+      padding-bottom: var(--safe-bottom);
     }
 
     .screen.active {
       display: flex;
+      animation: slideInFromRight 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .screen.active.slide-left {
+      animation: slideInFromLeft 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     /* ==================== ЕКРАН 1: SPLASH ==================== */
@@ -302,11 +338,12 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      transition: background-color 0.15s;
+      transition: background-color 0.15s, transform 0.12s ease;
     }
 
     .num-btn:active {
       background-color: #F0EFEA;
+      transform: scale(0.95);
     }
 
     .num-btn.transparent {
@@ -342,12 +379,17 @@
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
+      transition: transform 0.14s ease;
+    }
+
+    .notif-pill:active {
+      transform: scale(0.96);
     }
 
     /* ==================== ЕКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
-      padding: 0 22px 20px;
+      padding: 0 22px 14px;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -662,17 +704,22 @@
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
       z-index: 5;
+      transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* ==================== СПЛИВАЮЧЕ МЕНЮ, ЩО «НИРЯЄ» ЗА НИЖНЮ ПАНЕЛЬ ==================== */
+    .fab-plus:active {
+      transform: scale(0.93);
+    }
+
+    /* ==================== СПЛИВАЮЧЕ МЕНЮ ТА КОЛОНКА «ПЕРЕГЛЯНУТИ ДОКУМЕНТ» ==================== */
     .sheet-backdrop {
       position: fixed;
       inset: 0;
       background-color: rgba(0, 0, 0, 0.28);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.25s ease;
-      z-index: 25;
+      transition: opacity 0.22s ease;
+      z-index: 45;
     }
 
     .sheet-backdrop.open {
@@ -684,18 +731,31 @@
       position: fixed;
       left: 14px;
       right: 14px;
-      bottom: 0;
+      bottom: calc(74px + var(--safe-bottom));
       background-color: #FFFFFF;
-      border-radius: 22px 22px 0 0;
-      padding: 12px 22px calc(86px + var(--safe-bottom));
-      transform: translateY(100%);
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      z-index: 30;
-      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+      border-radius: 22px;
+      padding: 10px 20px 14px;
+      transform: translateY(calc(100% + 90px));
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+      z-index: 50;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
     }
 
     .bottom-sheet.open {
       transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (min-width: 520px) {
+      .bottom-sheet {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 70px;
+      }
     }
 
     .sheet-handle {
@@ -703,23 +763,32 @@
       height: 4px;
       background-color: #181815;
       border-radius: 2px;
-      margin: 0 auto 16px;
+      margin: 0 auto 8px;
       cursor: pointer;
+    }
+
+    .sheet-actions-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .sheet-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 15px 0;
-      font-size: 16px;
+      gap: 14px;
+      padding: 9px 0;
+      font-size: 15px;
       font-weight: 400;
+      line-height: 1.25;
       color: var(--text-main);
       cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.15s ease;
     }
 
     .sheet-item:active {
       opacity: 0.65;
+      transform: translateX(2px);
     }
 
     /* ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
@@ -901,6 +970,7 @@
       padding: 16px 18px;
       cursor: pointer;
       position: relative;
+      transition: background-color 0.15s ease;
     }
 
     .menu-row:not(:last-child)::after {
@@ -950,38 +1020,53 @@
       padding-bottom: 8px;
     }
 
-    /* ==================== ЕКРАН 6: ВАКАНСІЇ ==================== */
+    /* ==================== ЕКРАН 6: ВАКАНСІЇ (З ЗАКРІПЛЕНОЮ ПОМАРАНЧЕВОЮ КНОПКОЮ) ==================== */
     #screen-vacancies {
-      padding: calc(var(--safe-top) + 12px) 22px 20px;
+      padding: calc(var(--safe-top) + 12px) 22px calc(86px + var(--safe-bottom));
       justify-content: space-between;
+    }
+
+    .vac-scroll-area {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 10px;
+      scrollbar-width: none;
+    }
+
+    .vac-scroll-area::-webkit-scrollbar {
+      display: none;
     }
 
     .vac-top-icon {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .vac-content h1 {
       font-size: 27px;
       font-weight: 500;
       color: var(--text-main);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       letter-spacing: -0.02em;
     }
 
     .vac-content p {
       font-size: 15px;
       font-weight: 300;
-      line-height: 1.42;
+      line-height: 1.4;
       color: var(--text-main);
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .vac-bottom {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 14px;
+      padding-top: 8px;
+      flex-shrink: 0;
+      background-color: var(--bg-beige);
     }
 
     .checkbox-row {
@@ -1004,6 +1089,7 @@
       align-items: center;
       justify-content: center;
       background: transparent;
+      transition: background-color 0.15s ease;
     }
 
     .custom-checkbox.checked::after {
@@ -1013,6 +1099,7 @@
     }
 
     .primary-orange-btn {
+      display: block;
       width: 100%;
       background-color: var(--accent-orange);
       color: var(--text-main);
@@ -1022,6 +1109,11 @@
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
+      transition: transform 0.14s ease;
+    }
+
+    .primary-orange-btn:active {
+      transform: scale(0.98);
     }
 
     /* ==================== ЕКРАН 7: СЕРВІСИ ==================== */
@@ -1044,22 +1136,43 @@
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .service-item:active {
+      opacity: 0.65;
     }
 
     .service-item:last-child {
       border-bottom: none;
     }
 
-    /* ==================== НАВІГАЦІЯ НА СУЦІЛЬНОМУ БІЛОМУ ФОНІ (ПОВЕРХ «НИРЯЮЧОГО» МЕНЮ) ==================== */
+    /* ==================== ПОВНІСТЮ БІЛА НИЖНЯ НАВІГАЦІЯ ТА ЗАФАРБОВУВАННЯ ІКОНОК ==================== */
     .bottom-tabs {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
       background-color: #FFFFFF;
+      box-shadow: 0 36px 0 36px #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
-      align-items: start;
-      padding: 12px 4px calc(22px + var(--safe-bottom));
-      z-index: 40;
-      flex-shrink: 0;
+      align-items: center;
+      padding: 8px 4px calc(14px + var(--safe-bottom));
+      z-index: 60;
       border: none;
+    }
+
+    @media (min-width: 520px) {
+      .bottom-tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        padding-bottom: 14px;
+      }
     }
 
     .bottom-tabs.visible {
@@ -1071,26 +1184,54 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 5px;
       background: none;
       border: none;
-      color: #2E2D29;
-      font-size: 12px;
+      color: #6E6B60;
+      font-size: 11.5px;
       line-height: 1.15;
       font-weight: 400;
       cursor: pointer;
       padding: 2px 0;
+      transition: color 0.16s ease, transform 0.12s ease;
+    }
+
+    .tab-btn:active {
+      transform: scale(0.95);
     }
 
     .tab-btn svg {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       flex-shrink: 0;
+      color: #6E6B60;
+      transition: color 0.16s ease, transform 0.16s ease;
+    }
+
+    .tab-icon-filled {
+      display: none;
+    }
+
+    .tab-icon-outline {
+      display: block;
     }
 
     .tab-btn.active {
-      color: #11110E;
-      font-weight: 500;
+      color: #181815;
+      font-weight: 600;
+    }
+
+    .tab-btn.active svg {
+      color: #181815;
+      transform: scale(1.03);
+    }
+
+    .tab-btn.active .tab-icon-filled {
+      display: block;
+    }
+
+    .tab-btn.active .tab-icon-outline {
+      display: none;
     }
 
     .layout-mini-controls {
@@ -1548,35 +1689,37 @@
 
       <div id="sheet-backdrop" class="sheet-backdrop" onclick="toggleSheet(false)"></div>
 
-      <div id="bottom-sheet" class="bottom-sheet">
+      <div id="bottom-sheet" class="bottom-sheet" data-ui-id="doc-actions-sheet" data-ui-name="Меню дій з документом">
         <div class="sheet-handle" onclick="toggleSheet(false)"></div>
 
-        <div class="sheet-item" onclick="toggleSheet(false); goToScreen('full-info')">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
-            <circle cx="12" cy="12" r="9.5"/>
-            <path d="M12 11v5M12 8h.01" stroke-linecap="round"/>
-          </svg>
-          <span>Переглянути документ</span>
-        </div>
+        <div class="sheet-actions-column">
+          <div class="sheet-item" onclick="toggleSheet(false); goToScreen('full-info')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9.5"/>
+              <path d="M12 11v5M12 8h.01" stroke-linecap="round"/>
+            </svg>
+            <span>Переглянути документ</span>
+          </div>
 
-        <div class="sheet-item" onclick="toggleSheet(false); showToast('PDF файл сформовано')">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="8" y1="13" x2="16" y2="13"/>
-            <line x1="8" y1="17" x2="13" y2="17"/>
-          </svg>
-          <span>Завантажити PDF</span>
-        </div>
+          <div class="sheet-item" onclick="toggleSheet(false); showToast('PDF файл сформовано')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="13" y2="17"/>
+            </svg>
+            <span>Завантажити PDF</span>
+          </div>
 
-        <div class="sheet-item" onclick="toggleSheet(false); startDocumentUpdate()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-            <path d="M16 16h5v5"/>
-          </svg>
-          <span>Оновити документ</span>
+          <div class="sheet-item" onclick="toggleSheet(false); startDocumentUpdate()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+              <path d="M16 16h5v5"/>
+            </svg>
+            <span>Оновити документ</span>
+          </div>
         </div>
       </div>
     </section>
@@ -1765,7 +1908,7 @@
 
     <!-- ==================== ЕКРАН 6: ВАКАНСІЇ ==================== -->
     <section id="screen-vacancies" class="screen">
-      <div>
+      <div class="vac-scroll-area">
         <div class="vac-top-icon" data-ui-id="vac-top-icon" data-ui-name="Іконка довідки Вакансії">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.7" style="cursor:pointer" onclick="showToast('Інформація про сервіс вакансій')">
             <circle cx="12" cy="12" r="9.5"/>
@@ -1840,34 +1983,51 @@
     <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ ==================== -->
     <nav id="bottom-tabs" class="bottom-tabs" data-ui-id="bottom-tabs" data-ui-name="Нижній колонтитул (Вкладки)">
       <button class="tab-btn active" data-target="id" onclick="goToScreen('id')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+        <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
           <line x1="5" y1="14" x2="19" y2="14"/>
           <line x1="5" y1="17.5" x2="19" y2="17.5"/>
+        </svg>
+        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M7 3C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V5C19 3.89543 18.1046 3 17 3H7ZM7.5 14.5H16.5V16H7.5V14.5ZM16.5 17.5H7.5V19H16.5V17.5Z"/>
         </svg>
         <span>Резерв ID</span>
       </button>
 
       <button class="tab-btn" data-target="services" onclick="goToScreen('services')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+        <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="4" y="4" width="6.5" height="6.5" rx="1"/>
           <rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/>
           <rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/>
           <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>
         </svg>
+        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="4" y="4" width="6.8" height="6.8" rx="1.2"/>
+          <rect x="13.2" y="4" width="6.8" height="6.8" rx="1.2"/>
+          <rect x="4" y="13.2" width="6.8" height="6.8" rx="1.2"/>
+          <rect x="13.2" y="13.2" width="6.8" height="6.8" rx="1.2"/>
+        </svg>
         <span>Сервіси</span>
       </button>
 
       <button class="tab-btn" data-target="vacancies" onclick="goToScreen('vacancies')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+        <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
           <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M7 3C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V5C19 3.89543 18.1046 3 17 3H7ZM12 8.5L15.5 12L12 15.5L8.5 12L12 8.5Z"/>
         </svg>
         <span>Вакансії</span>
       </button>
 
       <button class="tab-btn" data-target="menu" onclick="goToScreen('menu')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+        <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="18" x2="20" y2="18"/>
+        </svg>
+        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round">
           <line x1="4" y1="6" x2="20" y2="6"/>
           <line x1="4" y1="12" x2="20" y2="12"/>
           <line x1="4" y1="18" x2="20" y2="18"/>
@@ -2115,6 +2275,7 @@
       'custom-uploaded': "'CustomUploadedFont', 'e-Ukraine', sans-serif"
     };
 
+    const TAB_ORDER = ['id', 'services', 'vacancies', 'menu'];
     const CACHE_BUSTER = Date.now();
     let appData = { ...defaultData, customLayouts: {} };
     let currentScreen = 'splash';
@@ -2124,7 +2285,6 @@
     let isUpdatingDoc = false;
     let inlineEditEnabled = false;
     let layoutEditMode = false;
-    let selectedUiId = null;
     let githubImageAvailable = false;
     let githubQrAvailable = false;
     let isCardFlipped = false;
@@ -2460,6 +2620,14 @@
 
     function goToScreen(name) {
       clearTimeout(autoTimer);
+      toggleSheet(false);
+
+      const prevTab = currentScreen === 'loading' ? 'id' : currentScreen;
+      const nextTab = name === 'loading' ? 'id' : name;
+      const prevIdx = TAB_ORDER.indexOf(prevTab);
+      const nextIdx = TAB_ORDER.indexOf(nextTab);
+      const moveBackward = prevIdx !== -1 && nextIdx !== -1 && nextIdx < prevIdx;
+
       currentScreen = name;
 
       if (name !== 'id') {
@@ -2469,7 +2637,17 @@
       }
 
       document.querySelectorAll('.screen').forEach(sec => {
-        sec.classList.toggle('active', sec.id === 'screen-' + name);
+        const isTarget = sec.id === 'screen-' + name;
+        sec.classList.remove('slide-left');
+        if (isTarget) {
+          if (moveBackward) {
+            sec.classList.add('slide-left');
+          }
+          void sec.offsetWidth;
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
       });
 
       const appShell = document.getElementById('app-shell');
@@ -2479,6 +2657,7 @@
       if (name === 'splash') {
         appShell.style.backgroundColor = '#1E1E1A';
         document.documentElement.style.backgroundColor = '#1E1E1A';
+        document.body.style.backgroundColor = '#1E1E1A';
         if (metaTheme) metaTheme.setAttribute('content', '#1E1E1A');
         bottomTabs.classList.remove('visible');
         autoTimer = setTimeout(() => goToScreen('pin'), 1800);
@@ -2487,16 +2666,19 @@
         updatePinDots();
         appShell.style.backgroundColor = '#DDD8C4';
         document.documentElement.style.backgroundColor = '#DDD8C4';
+        document.body.style.backgroundColor = '#DDD8C4';
         if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
         bottomTabs.classList.remove('visible');
       } else if (name === 'full-info') {
         appShell.style.backgroundColor = '#DDD8C4';
         document.documentElement.style.backgroundColor = '#DDD8C4';
+        document.body.style.backgroundColor = '#DDD8C4';
         if (metaTheme) metaTheme.setAttribute('content', '#DDD8C4');
         bottomTabs.classList.remove('visible');
       } else {
         appShell.style.backgroundColor = '#DDD8C4';
-        document.documentElement.style.backgroundColor = '#DDD8C4';
+        document.documentElement.style.backgroundColor = '#FFFFFF';
+        document.body.style.backgroundColor = '#FFFFFF';
         if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
         bottomTabs.classList.add('visible');
 
@@ -2508,12 +2690,6 @@
         if (name === 'loading') {
           autoTimer = setTimeout(() => goToScreen('id'), 1800);
         }
-      }
-
-      if (layoutEditMode) {
-        selectedUiId = null;
-        document.querySelectorAll('.layout-selected').forEach(el => el.classList.remove('layout-selected'));
-        updateResizeOverlay();
       }
     }
 
