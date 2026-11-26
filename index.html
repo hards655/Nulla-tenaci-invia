@@ -10,34 +10,50 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <link id="pwa-manifest" rel="manifest" href="" />
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
   <script>
+    let deferredPrompt = null;
+
+    function isStandaloneMode() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function syncStandaloneClass() {
+      const standalone = isStandaloneMode();
+      document.documentElement.classList.toggle('is-standalone', standalone);
+      document.body.classList.toggle('is-standalone', standalone);
+      const installCard = document.getElementById('menu-card-install');
+      if (installCard) {
+        installCard.style.display = standalone ? 'none' : '';
+      }
+    }
+
+    window.__isStandaloneMode = isStandaloneMode;
+    window.__syncStandaloneClass = syncStandaloneClass;
+
+    function createIcon(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#1E1E1A';
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = '#F38A00';
+      ctx.font = `bold ${size / 2}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Р', size / 2, size / 2);
+
+      return canvas.toDataURL('image/png');
+    }
+
     (function() {
-      function isStandaloneMode() {
-        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      }
-
-      function syncStandaloneClass() {
-        const standalone = isStandaloneMode();
-        document.documentElement.classList.toggle('is-standalone', standalone);
-        document.body.classList.toggle('is-standalone', standalone);
-        const installCard = document.getElementById('menu-card-install');
-        if (installCard) {
-          installCard.style.display = standalone ? 'none' : '';
-        }
-      }
-
-      window.__isStandaloneMode = isStandaloneMode;
-      window.__syncStandaloneClass = syncStandaloneClass;
-
       syncStandaloneClass();
       window.addEventListener('DOMContentLoaded', syncStandaloneClass);
-      window.addEventListener('appinstalled', () => {
-        syncStandaloneClass();
-      });
+
       if (window.matchMedia) {
         const mq = window.matchMedia('(display-mode: standalone)');
         if (mq.addEventListener) {
@@ -47,69 +63,39 @@
         }
       }
 
-      function getAbsolutePageUrl() {
-        try {
-          const u = new URL(window.location.href);
-          u.hash = '';
-          return u.href;
-        } catch (e) {
-          return window.location.href;
-        }
-      }
-
-      function getAbsoluteScopeUrl() {
-        try {
-          return new URL('./', window.location.href).href;
-        } catch (e) {
-          return './';
-        }
-      }
-
-      function setupManifest(iconSrc) {
-        try {
-          const startUrl = getAbsolutePageUrl();
-          const scopeUrl = getAbsoluteScopeUrl();
-          const icoHref = iconSrc || new URL('app.ico', window.location.href).href;
-          const manifest = {
-            id: startUrl,
-            name: 'Резерв+',
-            short_name: 'Резерв+',
-            description: 'Резерв+',
-            start_url: startUrl,
-            scope: scopeUrl,
-            display: 'standalone',
-            display_override: ['standalone', 'minimal-ui'],
-            orientation: 'portrait',
-            background_color: '#1E1E1A',
-            theme_color: '#1E1E1A',
-            icons: [
-              {
-                src: icoHref,
-                sizes: '192x192',
-                type: 'image/x-icon',
-                purpose: 'any'
-              },
-              {
-                src: icoHref,
-                sizes: '512x512',
-                type: 'image/x-icon',
-                purpose: 'any maskable'
-              }
-            ]
-          };
-          const jsonStr = JSON.stringify(manifest);
-          const dataUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(jsonStr);
-          const linkEl = document.getElementById('pwa-manifest');
-          if (linkEl) linkEl.href = dataUrl;
-        } catch (e) {}
-      }
-
       const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
       const appleIcon = document.getElementById('apple-touch-icon');
       if (appleIcon) appleIcon.href = rawIcoUrl;
       const favIcon = document.getElementById('favicon-icon');
       if (favIcon) favIcon.href = rawIcoUrl;
-      setupManifest(rawIcoUrl);
+
+      const manifest = {
+        name: 'Резерв+',
+        short_name: 'Резерв+',
+        id: location.pathname,
+        start_url: location.origin + location.pathname,
+        scope: new URL('./', location.href).href,
+        display: 'standalone',
+        background_color: '#1E1E1A',
+        theme_color: '#1E1E1A',
+        icons: [
+          {
+            src: createIcon(192),
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: createIcon(512),
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      };
+
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+      document.head.appendChild(link);
 
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
         window.addEventListener('load', () => {
@@ -117,6 +103,26 @@
         });
       }
     })();
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      syncStandaloneClass();
+    });
+
+    async function installApp() {
+      if (!deferredPrompt) return;
+
+      const prompt = deferredPrompt;
+      deferredPrompt = null;
+
+      await prompt.prompt();
+    }
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      syncStandaloneClass();
+    });
   </script>
 
   <style id="custom-font-style"></style>
@@ -2187,7 +2193,7 @@
       <div class="app-version" data-ui-id="menu-version" data-ui-name="Версія застосунку">Версія 2.6.0</div>
 
       <div class="menu-card" id="menu-card-install" data-ui-id="menu-card-install" data-ui-name="Картка встановлення додатка">
-        <div class="menu-row" onclick="triggerInstallApp()">
+        <div class="menu-row" onclick="installApp()">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3v12"/>
@@ -2697,41 +2703,9 @@
     let githubImageAvailable = false;
     let githubQrAvailable = false;
     let isCardFlipped = false;
-    let deferredInstallPrompt = null;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
-
-    function isStandaloneApp() {
-      return typeof window.__isStandaloneMode === 'function'
-        ? window.__isStandaloneMode()
-        : (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredInstallPrompt = e;
-    });
-
-    async function triggerInstallApp() {
-      if (isStandaloneApp()) {
-        if (typeof window.__syncStandaloneClass === 'function') {
-          window.__syncStandaloneClass();
-        }
-        return;
-      }
-
-      if (deferredInstallPrompt) {
-        try {
-          await deferredInstallPrompt.prompt();
-          const { outcome } = await deferredInstallPrompt.userChoice;
-          deferredInstallPrompt = null;
-          if (outcome === 'accepted' && typeof window.__syncStandaloneClass === 'function') {
-            window.__syncStandaloneClass();
-          }
-        } catch (err) {}
-      }
-    }
 
     function getElementCaption(id, fallbackName = '') {
       if (!appData.elementCaptions) appData.elementCaptions = {};
@@ -3040,9 +3014,7 @@
     }
 
     function applyDataToUI() {
-      if (typeof window.__syncStandaloneClass === 'function') {
-        window.__syncStandaloneClass();
-      }
+      syncStandaloneClass();
       applyFontSettings();
       applyElementCaptions();
 
@@ -3229,7 +3201,7 @@
       const appShell = document.getElementById('app-shell');
       const bottomTabs = document.getElementById('bottom-tabs');
       const metaTheme = document.getElementById('meta-theme-color');
-      const standalone = isStandaloneApp();
+      const standalone = isStandaloneMode();
 
       if (name === 'splash') {
         appShell.style.backgroundColor = '#1E1E1A';
