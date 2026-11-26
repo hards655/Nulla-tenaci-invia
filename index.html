@@ -50,10 +50,8 @@
         document.head.appendChild(link);
       }
 
-      // Сразу подключаем app.ico
       attachManifest(rawIcoUrl, 'image/x-icon');
 
-      // Конвертируем app.ico в PNG 512x512 в фоне, чтобы iOS Safari гарантированно поставил иконку на рабочий стол
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = function() {
@@ -76,7 +74,6 @@
   </script>
 
   <style>
-    /* Подключение локальных шрифтов e-Ukraine */
     @font-face {
       font-family: 'e-Ukraine';
       src: url('e_ukraine_light.otf') format('opentype');
@@ -192,12 +189,9 @@
       display: flex;
     }
 
-    /* ==================== ЭКРАН 1: SPLASH (С ПОДДЕРЖКОЙ load.jpg) ==================== */
+    /* ==================== ЕКРАН 1: SPLASH (ТІЛЬКИ ФОТО load.jpg) ==================== */
     #screen-splash {
       background-color: var(--bg-dark);
-      justify-content: center;
-      align-items: center;
-      text-align: center;
       cursor: pointer;
       padding-top: 0;
       padding-bottom: 0;
@@ -209,28 +203,10 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: none;
-      z-index: 2;
+      display: block;
     }
 
-    .splash-logo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      transform: translateY(-2%);
-      z-index: 1;
-    }
-
-    .splash-title {
-      color: #EAE6D7;
-      font-size: 23px;
-      font-weight: 500;
-      line-height: 1.24;
-      letter-spacing: -0.02em;
-    }
-
-    /* ==================== ЭКРАН 2: PIN CODE ==================== */
+    /* ==================== ЕКРАН 2: PIN CODE ==================== */
     #screen-pin {
       padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
       justify-content: space-between;
@@ -306,7 +282,7 @@
       cursor: pointer;
     }
 
-    /* ==================== ВЕРХНЯЯ СТРОКА (СПОВІЩЕННЯ) ==================== */
+    /* ==================== ВЕРХНІЙ РЯДОК (СПОВІЩЕННЯ) ==================== */
     .top-action-row {
       display: flex;
       justify-content: flex-end;
@@ -329,7 +305,7 @@
       cursor: pointer;
     }
 
-    /* ==================== ЭКРАН 3: LOADING CARD ==================== */
+    /* ==================== ЕКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
       padding: 0 22px 42px;
@@ -368,7 +344,7 @@
       color: var(--text-main);
     }
 
-    /* ==================== ЭКРАН 4: РЕЗЕРВ ID ==================== */
+    /* ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== */
     .id-card {
       flex: 1;
       background-color: var(--bg-card-beige);
@@ -607,7 +583,7 @@
       opacity: 0.65;
     }
 
-    /* ==================== ЭКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
+    /* ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
     #screen-full-info {
       background-color: var(--bg-beige);
       padding: var(--safe-top) 16px var(--safe-bottom);
@@ -1195,18 +1171,9 @@
   <div id="app-shell" class="app-shell">
     <div id="toast" class="toast">Скопійовано</div>
 
-    <!-- ==================== ЕКРАН 1: SPLASH (ПІДТЯГУЄ load.jpg ЯКЩО Є) ==================== -->
+    <!-- ==================== ЕКРАН 1: SPLASH (ТІЛЬКИ ФОТО load.jpg) ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
-      <img id="splash-custom-img" class="splash-custom-img" alt="Заставка">
-      <div id="splash-default-logo" class="splash-logo">
-        <svg width="54" height="62" viewBox="0 0 60 68" fill="none">
-          <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#EAE6D7"/>
-          <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#1E1E1A"/>
-        </svg>
-        <div class="splash-title">
-          Міністерство<br>оборони<br>України
-        </div>
-      </div>
+      <img id="splash-custom-img" class="splash-custom-img" src="load.jpg" alt="" onerror="this.style.display='none'">
     </section>
 
     <!-- ==================== ЕКРАН 2: PIN CODE ==================== -->
@@ -1698,11 +1665,11 @@
 
           <!-- Фото заставки перед PIN (load.jpg) -->
           <div class="editor-photo-row">
-            <div class="editor-photo-preview" id="editor-splash-preview">Екран<br>запуску</div>
+            <div class="editor-photo-preview" id="editor-splash-preview"><img src="load.jpg" alt="load.jpg" onerror="this.style.display='none'"></div>
             <div>
               <label for="splash-upload-input" class="upload-label-btn">Фото заставки (перед PIN)</label>
               <input type="file" id="splash-upload-input" accept="image/*" style="display: none;" onchange="handleSplashUpload(event)">
-              <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">Або покладіть файл load.jpg в корінь GitHub</div>
+              <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">За замовчуванням береться з load.jpg у GitHub</div>
             </div>
           </div>
 
@@ -1839,7 +1806,6 @@
     let isUpdatingDoc = false;
     let inlineEditEnabled = false;
     let githubImageAvailable = false;
-    let githubLoadImageAvailable = false;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
@@ -1948,30 +1914,24 @@
         }
       });
 
-      // Картинка заставки перед PIN (завантажена або load.jpg з GitHub)
+      // Тільки фото для заставки перед PIN (завантажене або load.jpg з GitHub)
       const splashImg = document.getElementById('splash-custom-img');
-      const splashDefault = document.getElementById('splash-default-logo');
       const splashPreview = document.getElementById('editor-splash-preview');
-      const activeSplashSrc = appData.splashDataUrl || (githubLoadImageAvailable ? 'load.jpg' : '');
+      const activeSplashSrc = appData.splashDataUrl || 'load.jpg';
 
-      if (splashImg && splashDefault) {
-        if (activeSplashSrc) {
-          splashImg.src = activeSplashSrc;
-          splashImg.style.display = 'block';
-          splashDefault.style.display = 'none';
-          if (splashPreview) splashPreview.innerHTML = `<img src="${activeSplashSrc}" alt="Заставка">`;
-        } else {
-          splashImg.style.display = 'none';
-          splashDefault.style.display = 'flex';
-          if (splashPreview) splashPreview.innerHTML = 'Екран<br>запуску';
-        }
+      if (splashImg) {
+        splashImg.style.display = 'block';
+        splashImg.src = activeSplashSrc;
+      }
+      if (splashPreview) {
+        splashPreview.innerHTML = `<img src="${activeSplashSrc}" alt="Заставка" onerror="this.style.display='none'">`;
       }
     }
 
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v7');
+        const raw = localStorage.getItem('rezerv_ui_data_v8');
         if (raw) {
           appData = { ...defaultData, ...JSON.parse(raw) };
           hasLocal = true;
@@ -1988,7 +1948,6 @@
         } catch (e) {}
       }
 
-      // Проверка image.jpg (фото в документе)
       const imgProbe = new Image();
       imgProbe.onload = () => {
         githubImageAvailable = true;
@@ -2000,24 +1959,12 @@
       };
       imgProbe.src = 'image.jpg?v=' + Date.now();
 
-      // Проверка load.jpg (экран загрузки перед PIN)
-      const loadProbe = new Image();
-      loadProbe.onload = () => {
-        githubLoadImageAvailable = true;
-        applyDataToUI();
-      };
-      loadProbe.onerror = () => {
-        githubLoadImageAvailable = false;
-        applyDataToUI();
-      };
-      loadProbe.src = 'load.jpg?v=' + Date.now();
-
       applyDataToUI();
     }
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v7', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v8', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2129,7 +2076,7 @@
       }, 1800);
     }
 
-    /* ==================== ЛОГИКА 4 НАЖАТИЙ И РЕДАКТОРА ==================== */
+    /* ==================== ЛОГІКА 4 НАТИСКАНЬ І РЕДАКТОРА ==================== */
     function handleCopyDeviceClick() {
       copyTapCount++;
       clearTimeout(copyTapTimer);
@@ -2200,7 +2147,7 @@
 
     function resetAppData() {
       appData = { ...defaultData };
-      localStorage.removeItem('rezerv_ui_data_v7');
+      localStorage.removeItem('rezerv_ui_data_v8');
       applyDataToUI();
       openEditor();
       showToast('Дані скинуто до початкових');
