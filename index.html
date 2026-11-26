@@ -10,113 +10,39 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <!-- Іконка app.ico тільки для значка ярлика -->
+  <!-- Іконка app.ico тільки для ярлика на головному екрані -->
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
-  <!-- Генерація Manifest: на стартовий екран завантаження ставиться load.jpg, а не іконка -->
+  <!-- Конвертація app.ico у PNG для чіткого значка ярлика без системного splash-екрана WebAPK -->
   <script>
     (function() {
-      const startUrl = new URL('.', window.location.href).href;
       const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
-      const rawLoadUrl = new URL('load.jpg?v=' + Date.now(), window.location.href).href;
-
-      function attachManifest(splashIconSrc, smallIconSrc, iconType) {
-        const oldManifest = document.getElementById('dynamic-manifest');
-        if (oldManifest) oldManifest.remove();
-
-        const iconsList = [];
-        if (smallIconSrc) {
-          iconsList.push({
-            src: smallIconSrc,
-            sizes: "48x48",
-            type: iconType,
-            purpose: "any"
-          });
-        }
-        if (splashIconSrc) {
-          iconsList.push({
-            src: splashIconSrc,
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any"
-          });
-        }
-
-        const manifest = {
-          name: "Резерв+",
-          short_name: "Резерв+",
-          start_url: startUrl,
-          scope: startUrl,
-          display: "standalone",
-          orientation: "portrait",
-          background_color: "#1E1E1A",
-          theme_color: "#1E1E1A",
-          icons: iconsList
-        };
-        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-        const link = document.createElement('link');
-        link.id = 'dynamic-manifest';
-        link.rel = 'manifest';
-        link.href = URL.createObjectURL(blob);
-        document.head.appendChild(link);
-      }
-
-      // 1. Конвертуємо app.ico у малий 48x48 PNG для значка ярлика (щоб система не розтягувала його на весь екран)
       const icoImg = new Image();
       icoImg.crossOrigin = 'anonymous';
       icoImg.onload = function() {
         try {
-          const c = document.createElement('canvas');
-          c.width = 180;
-          c.height = 180;
-          c.getContext('2d').drawImage(icoImg, 0, 0, 180, 180);
+          const canvas = document.createElement('canvas');
+          canvas.width = 192;
+          canvas.height = 192;
+          canvas.getContext('2d').drawImage(icoImg, 0, 0, 192, 192);
+          const pngUrl = canvas.toDataURL('image/png');
+
           const appleIcon = document.getElementById('apple-touch-icon');
-          if (appleIcon) appleIcon.href = c.toDataURL('image/png');
+          if (appleIcon) appleIcon.href = pngUrl;
 
-          const cSmall = document.createElement('canvas');
-          cSmall.width = 48;
-          cSmall.height = 48;
-          cSmall.getContext('2d').drawImage(icoImg, 0, 0, 48, 48);
-          const smallPng = cSmall.toDataURL('image/png');
-
-          // 2. Підвантажуємо load.jpg як системний екран запуску (512x512)
-          const loadImg = new Image();
-          loadImg.crossOrigin = 'anonymous';
-          loadImg.onload = function() {
-            const cSplash = document.createElement('canvas');
-            cSplash.width = 512;
-            cSplash.height = 512;
-            const ctx = cSplash.getContext('2d');
-            ctx.fillStyle = '#1E1E1A';
-            ctx.fillRect(0, 0, 512, 512);
-            const scale = Math.min(512 / loadImg.width, 512 / loadImg.height);
-            const w = loadImg.width * scale;
-            const h = loadImg.height * scale;
-            ctx.drawImage(loadImg, (512 - w) / 2, (512 - h) / 2, w, h);
-            attachManifest(cSplash.toDataURL('image/png'), smallPng, 'image/png');
-          };
-          loadImg.onerror = function() {
-            // Якщо load.jpg немає — ставимо суцільний темний фон без іконки
-            const cEmpty = document.createElement('canvas');
-            cEmpty.width = 512;
-            cEmpty.height = 512;
-            const ctx = cEmpty.getContext('2d');
-            ctx.fillStyle = '#1E1E1A';
-            ctx.fillRect(0, 0, 512, 512);
-            attachManifest(cEmpty.toDataURL('image/png'), smallPng, 'image/png');
-          };
-          loadImg.src = rawLoadUrl;
-        } catch (e) {
-          attachManifest(null, rawIcoUrl, 'image/x-icon');
-        }
-      };
-      icoImg.onerror = function() {
-        attachManifest(null, rawIcoUrl, 'image/x-icon');
+          const favIcon = document.getElementById('favicon-icon');
+          if (favIcon) {
+            favIcon.type = 'image/png';
+            favIcon.href = pngUrl;
+          }
+        } catch (e) {}
       };
       icoImg.src = rawIcoUrl;
     })();
   </script>
+
+  <style id="custom-font-style"></style>
 
   <style>
     @font-face {
@@ -152,6 +78,7 @@
     }
 
     :root {
+      --app-font: 'e-Ukraine', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --bg-beige: #DDD8C4;
       --bg-card-beige: #D5D0BC;
       --bg-dark: #1E1E1A;
@@ -196,7 +123,6 @@
       z-index: 60;
     }
 
-    /* Рамка з ручками для колонтитулів (верх/низ) та звуження/розширення (ліво/право/кути) */
     .resize-overlay-box {
       position: fixed;
       border: 2px solid #F38A00;
@@ -259,9 +185,13 @@
       height: 100%;
       height: 100dvh;
       background-color: var(--bg-dark);
-      font-family: 'e-Ukraine', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--app-font);
       overflow: hidden;
       overscroll-behavior: none;
+    }
+
+    button, input, textarea, select {
+      font-family: var(--app-font);
     }
 
     .app-shell {
@@ -369,7 +299,6 @@
       border-radius: 50%;
       background-color: #FFFFFF;
       border: none;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 26px;
       font-weight: 400;
       color: var(--text-main);
@@ -413,7 +342,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 13.5px;
       font-weight: 400;
       color: var(--text-main);
@@ -905,7 +833,6 @@
       border: none;
       border-radius: 999px;
       padding: 13px 38px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 15px;
       font-weight: 400;
       cursor: pointer;
@@ -991,7 +918,6 @@
       border: none;
       border-radius: 999px;
       padding: 15px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
@@ -1048,7 +974,6 @@
       background: none;
       border: none;
       color: #4A4945;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 11px;
       font-weight: 400;
       cursor: pointer;
@@ -1111,7 +1036,6 @@
       padding: 8px 10px;
       border-radius: 999px;
       border: none;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 11.5px;
       font-weight: 500;
       cursor: pointer;
@@ -1247,7 +1171,7 @@
       border-radius: 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .scale-control-header {
@@ -1261,6 +1185,16 @@
     .scale-control-box input[type="range"] {
       width: 100%;
       accent-color: #F38A00;
+    }
+
+    .font-select {
+      width: 100%;
+      border: 1px solid #D4CFC0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text-main);
+      background: #FFFFFF;
     }
 
     .field-group {
@@ -1280,7 +1214,6 @@
       border: 1px solid #D4CFC0;
       border-radius: 8px;
       padding: 8px 10px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 13px;
       color: var(--text-main);
       user-select: text;
@@ -1311,7 +1244,6 @@
       border: none;
       border-radius: 999px;
       padding: 11px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 13.5px;
       font-weight: 500;
       cursor: pointer;
@@ -1323,7 +1255,6 @@
       border: none;
       border-radius: 999px;
       padding: 11px 14px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 13px;
       font-weight: 400;
       cursor: pointer;
@@ -1336,7 +1267,6 @@
       border: none;
       border-radius: 999px;
       padding: 10px;
-      font-family: 'e-Ukraine', sans-serif;
       font-size: 12.5px;
       font-weight: 400;
       cursor: pointer;
@@ -1845,7 +1775,7 @@
     <div id="editor-modal" class="editor-modal">
       <div class="editor-box">
         <div class="editor-header">
-          <h3>Редактор даних, фото та макету</h3>
+          <h3>Редактор даних, шрифту та макету</h3>
           <button class="editor-close" onclick="closeEditor()">✕</button>
         </div>
 
@@ -1867,6 +1797,25 @@
               <label for="splash-upload-input" class="upload-label-btn">Фото заставки (перед PIN)</label>
               <input type="file" id="splash-upload-input" accept="image/*" style="display: none;" onchange="handleSplashUpload(event)">
               <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">За замовчуванням береться з load.jpg у GitHub</div>
+            </div>
+          </div>
+
+          <!-- Вибір шрифту -->
+          <div class="scale-control-box">
+            <div class="scale-control-header">
+              <span>Шрифт застосунку</span>
+            </div>
+            <select id="inp-fontFamily" class="font-select" onchange="handleFontSelectChange(this.value)">
+              <option value="e-Ukraine">e-Ukraine (Оригінальний)</option>
+              <option value="system-sans">Системний Sans-Serif (Стандартний)</option>
+              <option value="roboto">Roboto / Arial / Helvetica</option>
+              <option value="serif">Із засічками (Georgia / Times)</option>
+              <option value="mono">Моноширинний (Courier / Monospace)</option>
+              <option value="custom-uploaded">Власний завантажений шрифт</option>
+            </select>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+              <label for="font-upload-input" class="upload-label-btn" style="padding: 6px 12px; font-size: 11px;">Завантажити файл шрифту (.otf/.ttf)</label>
+              <input type="file" id="font-upload-input" accept=".otf,.ttf,.woff,.woff2" style="display: none;" onchange="handleCustomFontUpload(event)">
             </div>
           </div>
 
@@ -2036,8 +1985,19 @@
       verifiedDate: '20.05.2024',
       photoDataUrl: '',
       splashDataUrl: '',
+      fontFamily: 'e-Ukraine',
+      customFontDataUrl: '',
       globalScale: 100,
       customLayouts: {}
+    };
+
+    const FONT_MAP = {
+      'e-Ukraine': "'e-Ukraine', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      'system-sans': "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'roboto': "Roboto, Arial, Helvetica, sans-serif",
+      'serif': "Georgia, 'Times New Roman', serif",
+      'mono': "'Courier New', Courier, monospace",
+      'custom-uploaded': "'CustomUploadedFont', 'e-Ukraine', sans-serif"
     };
 
     const CACHE_BUSTER = Date.now();
@@ -2054,6 +2014,56 @@
 
     let copyTapCount = 0;
     let copyTapTimer = null;
+
+    function applyFontSettings() {
+      const customStyleEl = document.getElementById('custom-font-style');
+      if (customStyleEl) {
+        if (appData.customFontDataUrl) {
+          customStyleEl.textContent = `
+            @font-face {
+              font-family: 'CustomUploadedFont';
+              src: url('${appData.customFontDataUrl}');
+              font-weight: 100 900;
+              font-style: normal;
+            }
+          `;
+        } else {
+          customStyleEl.textContent = '';
+        }
+      }
+
+      const selectedKey = appData.fontFamily || 'e-Ukraine';
+      const cssFont = FONT_MAP[selectedKey] || FONT_MAP['e-Ukraine'];
+      document.documentElement.style.setProperty('--app-font', cssFont);
+    }
+
+    function handleFontSelectChange(val) {
+      if (val === 'custom-uploaded' && !appData.customFontDataUrl) {
+        showToast('Спочатку завантажте файл шрифту');
+        document.getElementById('inp-fontFamily').value = appData.fontFamily || 'e-Ukraine';
+        return;
+      }
+      appData.fontFamily = val;
+      applyFontSettings();
+      persistData();
+      showToast('Шрифт змінено');
+    }
+
+    function handleCustomFontUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appData.customFontDataUrl = e.target.result;
+        appData.fontFamily = 'custom-uploaded';
+        const sel = document.getElementById('inp-fontFamily');
+        if (sel) sel.value = 'custom-uploaded';
+        applyFontSettings();
+        persistData();
+        showToast('Власний шрифт застосовано');
+      };
+      reader.readAsDataURL(file);
+    }
 
     function defaultPhotoSVG() {
       return `
@@ -2176,6 +2186,8 @@
     }
 
     function applyDataToUI() {
+      applyFontSettings();
+
       document.querySelectorAll('[data-bind]').forEach(el => {
         const key = el.dataset.bind;
         if (appData[key] !== undefined) {
@@ -2232,7 +2244,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v12');
+        const raw = localStorage.getItem('rezerv_ui_data_v14');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
@@ -2266,7 +2278,7 @@
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v12', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v14', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2599,11 +2611,16 @@
     }
 
     function openEditor() {
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl' || key === 'splashDataUrl' || key === 'customLayouts' || key === 'globalScale') return;
+        if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
         if (input) input.value = appData[key];
       });
+
+      const fontSel = document.getElementById('inp-fontFamily');
+      if (fontSel) fontSel.value = appData.fontFamily || 'e-Ukraine';
+
       const gScale = appData.globalScale || 100;
       document.getElementById('inp-globalScale').value = gScale;
       document.getElementById('global-scale-label').textContent = gScale + '%';
@@ -2642,8 +2659,9 @@
     }
 
     function saveEditorFields() {
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl' || key === 'splashDataUrl' || key === 'customLayouts' || key === 'globalScale') return;
+        if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
         if (input) appData[key] = input.value;
       });
@@ -2655,10 +2673,10 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {} };
-      localStorage.removeItem('rezerv_ui_data_v12');
+      localStorage.removeItem('rezerv_ui_data_v14');
       applyDataToUI();
       openEditor();
-      showToast('Дані та позиції скинуто');
+      showToast('Дані, шрифт та позиції скинуто');
     }
 
     function toggleInlineEdit() {
