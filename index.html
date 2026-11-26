@@ -296,7 +296,6 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
-    /* Бічна ручка зміни ШИРИНИ (праворуч і ліворуч) */
     .resize-handle-right {
       position: absolute;
       right: -11px;
@@ -357,7 +356,6 @@
       margin-left: -3px;
     }
 
-    /* Нижня і верхня ручка зміни ВИСОТИ */
     .resize-handle-bottom {
       position: absolute;
       bottom: -11px;
@@ -418,7 +416,6 @@
       margin-top: -3px;
     }
 
-    /* Кутова ручка одночасної зміни ШИРИНИ та ВИСОТИ */
     .resize-handle-corner {
       position: absolute;
       right: -11px;
@@ -1582,89 +1579,6 @@
       display: none;
     }
 
-    /* ==================== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВСТАНОВЛЕННЯ ==================== */
-    .install-guide-modal {
-      position: fixed;
-      inset: 0;
-      background-color: rgba(20, 20, 18, 0.72);
-      backdrop-filter: blur(4px);
-      z-index: 320;
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .install-guide-modal.open {
-      display: flex;
-    }
-
-    .install-guide-card {
-      width: 100%;
-      max-width: 390px;
-      background: #FFFFFF;
-      border-radius: 22px;
-      padding: 20px 20px 18px;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .install-guide-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .install-guide-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      background: #1E1E1A;
-      overflow: hidden;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .install-guide-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .install-guide-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .install-guide-sub {
-      font-size: 12px;
-      font-weight: 300;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .install-guide-steps {
-      background: #F7F5EE;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 13px;
-      line-height: 1.45;
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .install-guide-actions {
-      display: flex;
-      gap: 8px;
-    }
-
     .layout-mini-controls {
       position: fixed;
       right: 12px;
@@ -2562,26 +2476,6 @@
       </button>
     </nav>
 
-    <!-- ==================== МОДАЛЬНЕ ВІКНО ВСТАНОВЛЕННЯ ДОДАТКА ==================== -->
-    <div id="install-guide-modal" class="install-guide-modal" onclick="if(event.target===this) closeInstallGuide()">
-      <div class="install-guide-card">
-        <div class="install-guide-top">
-          <div class="install-guide-icon">
-            <img src="app.ico" alt="" onerror="this.style.display='none'">
-          </div>
-          <div>
-            <div class="install-guide-title">Встановити «Резерв+»</div>
-            <div class="install-guide-sub">Окремий додаток на головний екран без панелі браузера</div>
-          </div>
-        </div>
-        <div id="install-guide-steps" class="install-guide-steps"></div>
-        <div class="install-guide-actions">
-          <button class="btn-reset" style="flex: 1;" onclick="closeInstallGuide()">Закрити</button>
-          <button id="install-guide-retry-btn" class="btn-save" style="flex: 1;" onclick="retryNativeInstall()">Встановити</button>
-        </div>
-      </div>
-    </div>
-
     <!-- ==================== ПРИХОВАНЕ МОДАЛЬНЕ ВІКНО РЕДАКТОРА ==================== -->
     <div id="editor-modal" class="editor-modal">
       <div class="editor-box">
@@ -2861,6 +2755,7 @@
     let githubQrAvailable = false;
     let isCardFlipped = false;
     let deferredInstallPrompt = null;
+    let pendingInstallAfterPrompt = false;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
@@ -2871,84 +2766,53 @@
         : (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
     }
 
+    async function runDeferredInstallPrompt() {
+      if (!deferredInstallPrompt) return false;
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      try {
+        await promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
+        if (outcome === 'accepted') {
+          if (typeof window.__syncStandaloneClass === 'function') {
+            window.__syncStandaloneClass();
+          }
+        }
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
+      if (pendingInstallAfterPrompt) {
+        pendingInstallAfterPrompt = false;
+        runDeferredInstallPrompt();
+      }
     });
 
     async function triggerInstallApp() {
       if (isStandaloneApp()) {
-        if (typeof window.__syncStandaloneClass === 'function') window.__syncStandaloneClass();
+        if (typeof window.__syncStandaloneClass === 'function') {
+          window.__syncStandaloneClass();
+        }
         return;
       }
 
       if (deferredInstallPrompt) {
-        try {
-          await deferredInstallPrompt.prompt();
-          const { outcome } = await deferredInstallPrompt.userChoice;
-          deferredInstallPrompt = null;
-          if (outcome === 'accepted') {
-            showToast('Додаток встановлюється...');
-            closeInstallGuide();
-          } else {
-            showToast('Встановлення скасовано');
-          }
-          return;
-        } catch (err) {}
+        await runDeferredInstallPrompt();
+        return;
       }
 
-      openInstallGuide();
-    }
-
-    function openInstallGuide() {
-      const stepsEl = document.getElementById('install-guide-steps');
-      const retryBtn = document.getElementById('install-guide-retry-btn');
-      const ua = navigator.userAgent || '';
-      const isIos = /iphone|ipad|ipod/i.test(ua);
-      const isSamsung = /SamsungBrowser/i.test(ua);
-
-      if (isIos) {
-        stepsEl.innerHTML = `
-          <div>1. Натисніть кнопку <b>«Поділитися»</b> внизу панелі Safari.</div>
-          <div>2. Прогорніть список вниз та оберіть <b>«На екран „Домой“»</b> (Add to Home Screen).</div>
-          <div>3. Натисніть <b>«Додати»</b> у правому верхньому куті.</div>
-        `;
-        if (retryBtn) retryBtn.style.display = 'none';
-      } else if (isSamsung) {
-        stepsEl.innerHTML = `
-          <div>1. Натисніть іконку меню <b>≡</b> у правому нижньому куті браузера.</div>
-          <div>2. Оберіть <b>«Додати сторінку до»</b> → <b>«Головний екран»</b>.</div>
-          <div>3. Підтвердіть встановлення додатка.</div>
-        `;
-        if (retryBtn) retryBtn.style.display = deferredInstallPrompt ? '' : 'none';
-      } else {
-        stepsEl.innerHTML = `
-          <div>1. Натисніть <b>⋮</b> (три крапки) у правому верхньому куті браузера.</div>
-          <div>2. Натисніть <b>«Встановити додаток»</b> або <b>«Додати на головний екран»</b> → <b>«Встановити»</b>.</div>
-          <div>3. Після цього додаток з’явиться в меню програм як окремий застосунок з іконкою <b>app.ico</b>.</div>
-        `;
-        if (retryBtn) retryBtn.style.display = deferredInstallPrompt ? '' : 'none';
-      }
-
-      document.getElementById('install-guide-modal').classList.add('open');
-    }
-
-    function closeInstallGuide() {
-      document.getElementById('install-guide-modal').classList.remove('open');
-    }
-
-    async function retryNativeInstall() {
-      if (deferredInstallPrompt) {
-        await deferredInstallPrompt.prompt();
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        deferredInstallPrompt = null;
-        if (outcome === 'accepted') {
-          closeInstallGuide();
-          showToast('Додаток встановлюється...');
+      pendingInstallAfterPrompt = true;
+      setTimeout(() => {
+        if (pendingInstallAfterPrompt && !deferredInstallPrompt) {
+          pendingInstallAfterPrompt = false;
+          showToast('Встановлення недоступне у поточному вікні браузера');
         }
-      } else {
-        closeInstallGuide();
-      }
+      }, 1500);
     }
 
     function getElementCaption(id, fallbackName = '') {
