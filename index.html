@@ -984,65 +984,35 @@
       font-weight: 500;
     }
 
-    /* ==================== ПЛАВАЮЧА ПАНЕЛЬ РУХУ ТА РОЗМІРУ ЕЛЕМЕНТІВ ==================== */
-    .layout-toolbar {
+    /* ==================== КОМПАКТНІ КНОПКИ СПРАВА ЗНИЗУ (СКИНУТИ / ГОТОВО) ==================== */
+    .layout-mini-controls {
       position: fixed;
-      bottom: calc(var(--safe-bottom) + 14px);
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 24px);
-      max-width: 390px;
-      background: rgba(24, 24, 21, 0.95);
-      color: #FFFFFF;
-      border-radius: 16px;
-      padding: 12px 14px;
-      z-index: 300;
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 12px);
       display: none;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    .layout-toolbar.open {
-      display: flex;
-    }
-
-    .layout-toolbar-top {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      gap: 6px;
+      z-index: 300;
+      pointer-events: none;
     }
 
-    .layout-toolbar-top strong {
-      color: #F38A00;
-      font-weight: 500;
-    }
-
-    .layout-hint {
-      font-size: 10.5px;
-      color: #C7C3B5;
-      line-height: 1.3;
-    }
-
-    .layout-toolbar-actions {
+    .layout-mini-controls.open {
       display: flex;
-      gap: 8px;
     }
 
-    .lt-btn {
-      flex: 1;
-      padding: 8px 10px;
+    .lt-mini-btn {
+      pointer-events: auto;
+      padding: 6px 11px;
       border-radius: 999px;
       border: none;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 500;
       cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
     }
 
     .lt-btn-reset {
-      background: #3A3933;
+      background: rgba(35, 34, 30, 0.9);
       color: #FFFFFF;
     }
 
@@ -1949,19 +1919,10 @@
     <div class="resize-handle corner corner-se" data-dir="se"></div>
   </div>
 
-  <!-- ==================== ПЛАВАЮЧА ПАНЕЛЬ РУХУ ТА РОЗМІРУ ==================== -->
-  <div id="layout-toolbar" class="layout-toolbar">
-    <div class="layout-toolbar-top">
-      <span>Елемент: <strong id="selected-el-label">Натисніть на елемент</strong></span>
-      <span id="selected-el-dims">—</span>
-    </div>
-    <div class="layout-hint">
-      Тягніть за центр — рух • Верхній / нижній маркер — колонтитул • Бічні — звузити / розширити
-    </div>
-    <div class="layout-toolbar-actions">
-      <button class="lt-btn lt-btn-reset" onclick="resetSelectedElementLayout()">Скинути елемент</button>
-      <button class="lt-btn lt-btn-done" onclick="stopLayoutEditMode()">Готово</button>
-    </div>
+  <!-- ==================== ДВІ МАЛЕНЬКІ КНОПКИ СПРАВА ЗНИЗУ ==================== -->
+  <div id="layout-toolbar" class="layout-mini-controls">
+    <button class="lt-mini-btn lt-btn-reset" onclick="resetSelectedElementLayout()">Скинути</button>
+    <button class="lt-mini-btn lt-btn-done" onclick="stopLayoutEditMode()">Готово</button>
   </div>
 
   <script>
@@ -2244,7 +2205,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v14');
+        const raw = localStorage.getItem('rezerv_ui_data_v15');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
@@ -2278,7 +2239,7 @@
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v14', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v15', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2409,7 +2370,7 @@
       layoutEditMode = true;
       document.body.classList.add('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.add('open');
-      showToast('Натисніть на елемент або колонтитул');
+      showToast('Натисніть на елемент');
     }
 
     function stopLayoutEditMode() {
@@ -2420,17 +2381,15 @@
       document.getElementById('resize-overlay').classList.remove('visible');
       document.querySelectorAll('.layout-selected').forEach(el => el.classList.remove('layout-selected'));
       persistData();
-      showToast('Розміри та позиції збережено');
+      showToast('Збережено');
     }
 
     function updateResizeOverlay() {
       const overlay = document.getElementById('resize-overlay');
-      const dimsLabel = document.getElementById('selected-el-dims');
       if (!overlay) return;
 
       if (!layoutEditMode || !selectedUiId) {
         overlay.classList.remove('visible');
-        if (dimsLabel) dimsLabel.textContent = '—';
         return;
       }
 
@@ -2451,10 +2410,6 @@
       overlay.style.width = rect.width + 'px';
       overlay.style.height = rect.height + 'px';
       overlay.classList.add('visible');
-
-      if (dimsLabel) {
-        dimsLabel.textContent = `${Math.round(rect.width)}×${Math.round(rect.height)} px`;
-      }
     }
 
     function selectLayoutElement(el) {
@@ -2466,17 +2421,19 @@
         appData.customLayouts[selectedUiId] = { x: 0, y: 0, w: null, h: null };
       }
 
-      document.getElementById('selected-el-label').textContent = el.dataset.uiName || selectedUiId;
       updateResizeOverlay();
     }
 
     function resetSelectedElementLayout() {
-      if (!selectedUiId) return;
+      if (!selectedUiId) {
+        showToast('Спочатку натисніть на елемент');
+        return;
+      }
       delete appData.customLayouts[selectedUiId];
       applyCustomLayouts();
       updateResizeOverlay();
       persistData();
-      showToast('Елемент повернуто до стандарту');
+      showToast('Скинуто');
     }
 
     let actionState = null;
@@ -2673,7 +2630,7 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {} };
-      localStorage.removeItem('rezerv_ui_data_v14');
+      localStorage.removeItem('rezerv_ui_data_v15');
       applyDataToUI();
       openEditor();
       showToast('Дані, шрифт та позиції скинуто');
