@@ -10,50 +10,12 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <link id="pwa-manifest-link" rel="manifest" href="manifest.json" />
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
   <script>
     (function() {
       const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
-      let resolvedIconUrl = rawIcoUrl;
-
-      function attachManifest(iconHref) {
-        try {
-          const manifestObj = {
-            name: 'Резерв+',
-            short_name: 'Резерв+',
-            start_url: './',
-            scope: './',
-            display: 'standalone',
-            orientation: 'portrait',
-            background_color: '#FFFFFF',
-            theme_color: '#FFFFFF',
-            icons: [
-              {
-                src: iconHref,
-                sizes: '192x192',
-                type: iconHref.startsWith('data:image/png') ? 'image/png' : 'image/x-icon',
-                purpose: 'any maskable'
-              },
-              {
-                src: iconHref,
-                sizes: '512x512',
-                type: iconHref.startsWith('data:image/png') ? 'image/png' : 'image/x-icon',
-                purpose: 'any maskable'
-              }
-            ]
-          };
-          const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
-          const manifestUrl = URL.createObjectURL(blob);
-          const linkEl = document.getElementById('pwa-manifest-link');
-          if (linkEl) linkEl.href = manifestUrl;
-        } catch (e) {}
-      }
-
-      attachManifest(resolvedIconUrl);
-
       const icoImg = new Image();
       icoImg.crossOrigin = 'anonymous';
       icoImg.onload = function() {
@@ -63,7 +25,6 @@
           canvas.height = 192;
           canvas.getContext('2d').drawImage(icoImg, 0, 0, 192, 192);
           const pngUrl = canvas.toDataURL('image/png');
-          resolvedIconUrl = pngUrl;
 
           const appleIcon = document.getElementById('apple-touch-icon');
           if (appleIcon) appleIcon.href = pngUrl;
@@ -73,36 +34,9 @@
             favIcon.type = 'image/png';
             favIcon.href = pngUrl;
           }
-
-          attachManifest(pngUrl);
         } catch (e) {}
       };
       icoImg.src = rawIcoUrl;
-
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          const swCode = `
-            const CACHE_NAME = 'rezerv-pwa-v1';
-            self.addEventListener('install', event => {
-              self.skipWaiting();
-            });
-            self.addEventListener('activate', event => {
-              event.waitUntil(self.clients.claim());
-            });
-            self.addEventListener('fetch', event => {
-              if (event.request.method !== 'GET') return;
-              event.respondWith(
-                fetch(event.request).catch(() => caches.match(event.request))
-              );
-            });
-          `;
-          try {
-            const swBlob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl, { scope: './' }).catch(() => {});
-          } catch (e) {}
-        });
-      }
     })();
   </script>
 
@@ -413,7 +347,7 @@
     /* ==================== ЕКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
-      padding: 0 22px 22px;
+      padding: 0 22px 20px;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -730,14 +664,15 @@
       z-index: 5;
     }
 
+    /* ==================== СПЛИВАЮЧЕ МЕНЮ, ЩО «НИРЯЄ» ЗА НИЖНЮ ПАНЕЛЬ ==================== */
     .sheet-backdrop {
-      position: absolute;
+      position: fixed;
       inset: 0;
       background-color: rgba(0, 0, 0, 0.28);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
-      z-index: 20;
+      z-index: 25;
     }
 
     .sheet-backdrop.open {
@@ -746,16 +681,16 @@
     }
 
     .bottom-sheet {
-      position: absolute;
+      position: fixed;
       left: 14px;
       right: 14px;
       bottom: 0;
       background-color: #FFFFFF;
       border-radius: 22px 22px 0 0;
-      padding: 12px 22px 22px;
+      padding: 12px 22px calc(86px + var(--safe-bottom));
       transform: translateY(100%);
       transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      z-index: 25;
+      z-index: 30;
       box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
     }
 
@@ -776,8 +711,8 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 14px 0;
-      font-size: 15.5px;
+      padding: 15px 0;
+      font-size: 16px;
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
@@ -1115,14 +1050,14 @@
       border-bottom: none;
     }
 
-    /* ==================== СУЦІЛЬНИЙ БІЛИЙ НИЖНІЙ БЛОК ДО КРАЮ НАВІГАЦІЇ ANDROID ==================== */
+    /* ==================== НАВІГАЦІЯ НА СУЦІЛЬНОМУ БІЛОМУ ФОНІ (ПОВЕРХ «НИРЯЮЧОГО» МЕНЮ) ==================== */
     .bottom-tabs {
       background-color: #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: start;
-      padding: 12px 4px calc(18px + var(--safe-bottom));
-      z-index: 30;
+      padding: 12px 4px calc(22px + var(--safe-bottom));
+      z-index: 40;
       flex-shrink: 0;
       border: none;
     }
