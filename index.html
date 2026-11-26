@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
+  <link rel="icon" href="data:image/svg+xml," />
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.png" />
 
   <script>
@@ -398,7 +399,7 @@
       overflow: hidden;
       background-color: var(--bg-beige);
       padding-top: var(--safe-top);
-      padding-bottom: 12px;
+      padding-bottom: 0;
       will-change: transform, opacity;
     }
 
@@ -1073,7 +1074,7 @@
     }
 
     #screen-menu {
-      padding: calc(var(--safe-top) + 10px) 22px 14px;
+      padding: calc(var(--safe-top) + 10px) 22px 18px;
       overflow-y: auto;
     }
 
@@ -1256,7 +1257,7 @@
     }
 
     #screen-services {
-      padding: calc(var(--safe-top) + 10px) 22px 14px;
+      padding: calc(var(--safe-top) + 10px) 22px 18px;
       overflow-y: auto;
     }
 
@@ -1285,16 +1286,15 @@
       border-bottom: none;
     }
 
-    /* Нижня панель: суцільний білий фон до нижнього краю екрана */
     .bottom-tabs {
       width: 100%;
       flex-shrink: 0;
       background-color: #FFFFFF;
-      box-shadow: 0 64px 0 64px #FFFFFF;
+      box-shadow: 0 120px 0 120px #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 10px 4px calc(12px + var(--safe-bottom));
+      padding: 10px 4px calc(14px + var(--safe-bottom));
       z-index: 60;
       border: none;
     }
@@ -3006,12 +3006,15 @@
       const appShell = document.getElementById('app-shell');
       const metaTheme = document.getElementById('meta-theme-color');
       const isSplash = screenName === 'splash';
-      const topColor = isSplash ? '#1E1E1A' : '#DDD8C4';
+      const hasBottomNav = ['loading', 'id', 'services', 'vacancies', 'menu'].includes(screenName);
 
-      appShell.style.backgroundColor = topColor;
-      document.documentElement.style.backgroundColor = topColor;
-      document.body.style.backgroundColor = topColor;
-      if (metaTheme) metaTheme.setAttribute('content', topColor);
+      const shellBg = isSplash ? '#1E1E1A' : (hasBottomNav ? '#FFFFFF' : '#DDD8C4');
+      const themeColor = isSplash ? '#1E1E1A' : (hasBottomNav ? '#FFFFFF' : '#DDD8C4');
+
+      appShell.style.backgroundColor = shellBg;
+      document.documentElement.style.backgroundColor = shellBg;
+      document.body.style.backgroundColor = shellBg;
+      if (metaTheme) metaTheme.setAttribute('content', themeColor);
     }
 
     function goToScreen(name) {
