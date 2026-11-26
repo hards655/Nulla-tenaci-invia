@@ -47,80 +47,118 @@
         }
       }
 
-      function setupManifest(iconUrl) {
+      function getAbsolutePageUrl() {
         try {
+          const u = new URL(window.location.href);
+          u.hash = '';
+          return u.href;
+        } catch (e) {
+          return window.location.href;
+        }
+      }
+
+      function getAbsoluteScopeUrl() {
+        try {
+          return new URL('./', window.location.href).href;
+        } catch (e) {
+          return './';
+        }
+      }
+
+      function createFallbackPngIcon(size) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#1E1E1A';
+          ctx.fillRect(0, 0, size, size);
+          ctx.fillStyle = '#DDD8C4';
+          ctx.font = `bold ${Math.round(size * 0.24)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Р+', size / 2, size / 2);
+          return canvas.toDataURL('image/png');
+        } catch (e) {
+          return '';
+        }
+      }
+
+      function setupManifest(icon192, icon512) {
+        try {
+          const startUrl = getAbsolutePageUrl();
+          const scopeUrl = getAbsoluteScopeUrl();
           const manifest = {
+            id: startUrl,
             name: 'Резерв+',
             short_name: 'Резерв+',
-            start_url: './',
-            scope: './',
+            description: 'Резерв+',
+            start_url: startUrl,
+            scope: scopeUrl,
             display: 'standalone',
+            display_override: ['standalone', 'minimal-ui'],
             orientation: 'portrait',
             background_color: '#1E1E1A',
             theme_color: '#1E1E1A',
             icons: [
               {
-                src: iconUrl,
+                src: icon192,
                 sizes: '192x192',
                 type: 'image/png',
-                purpose: 'any maskable'
+                purpose: 'any'
               },
               {
-                src: iconUrl,
+                src: icon512 || icon192,
                 sizes: '512x512',
                 type: 'image/png',
                 purpose: 'any maskable'
               }
             ]
           };
-          const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-          const manifestUrl = URL.createObjectURL(blob);
+          const jsonStr = JSON.stringify(manifest);
+          const dataUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(jsonStr);
           const linkEl = document.getElementById('pwa-manifest');
-          if (linkEl) linkEl.href = manifestUrl;
+          if (linkEl) linkEl.href = dataUrl;
         } catch (e) {}
       }
 
-      const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
-      setupManifest(rawIcoUrl);
+      const fallback192 = createFallbackPngIcon(192);
+      const fallback512 = createFallbackPngIcon(512);
+      setupManifest(fallback192, fallback512);
 
+      const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
       const icoImg = new Image();
       icoImg.crossOrigin = 'anonymous';
       icoImg.onload = function() {
         try {
-          const canvas = document.createElement('canvas');
-          canvas.width = 192;
-          canvas.height = 192;
-          canvas.getContext('2d').drawImage(icoImg, 0, 0, 192, 192);
-          const pngUrl = canvas.toDataURL('image/png');
+          const c192 = document.createElement('canvas');
+          c192.width = 192;
+          c192.height = 192;
+          c192.getContext('2d').drawImage(icoImg, 0, 0, 192, 192);
+          const png192 = c192.toDataURL('image/png');
+
+          const c512 = document.createElement('canvas');
+          c512.width = 512;
+          c512.height = 512;
+          c512.getContext('2d').drawImage(icoImg, 0, 0, 512, 512);
+          const png512 = c512.toDataURL('image/png');
 
           const appleIcon = document.getElementById('apple-touch-icon');
-          if (appleIcon) appleIcon.href = pngUrl;
+          if (appleIcon) appleIcon.href = png192;
 
           const favIcon = document.getElementById('favicon-icon');
           if (favIcon) {
             favIcon.type = 'image/png';
-            favIcon.href = pngUrl;
+            favIcon.href = png192;
           }
-          setupManifest(pngUrl);
+          setupManifest(png192, png512);
         } catch (e) {}
       };
       icoImg.src = rawIcoUrl;
 
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
         window.addEventListener('load', () => {
-          const swCode = `
-            self.addEventListener('install', () => self.skipWaiting());
-            self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-            self.addEventListener('fetch', (event) => {
-              if (event.request.method !== 'GET') return;
-              event.respondWith(
-                fetch(event.request).catch(() => caches.match(event.request))
-              );
-            });
-          `;
-          const swBlob = new Blob([swCode], { type: 'application/javascript' });
-          const swUrl = URL.createObjectURL(swBlob);
-          navigator.serviceWorker.register(swUrl).catch(() => {});
+          navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
         });
       }
     })();
@@ -212,6 +250,7 @@
       z-index: 60;
     }
 
+    /* ==================== РАМКА ІНСПЕКТОРА + БІЧНІ РУЧКИ ШИРИНИ ТА ВИСОТИ ==================== */
     .component-inspector-box {
       position: fixed;
       border: 2px solid #F38A00;
@@ -229,7 +268,7 @@
     .inspector-caption-badge {
       position: absolute;
       left: 0;
-      top: -22px;
+      top: -24px;
       background: #F38A00;
       color: #181815;
       font-size: 10px;
@@ -243,12 +282,165 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
+    .inspector-size-badge {
+      position: absolute;
+      right: 0;
+      top: -24px;
+      background: rgba(24, 24, 21, 0.92);
+      color: #F9E255;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 6px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Бічна ручка зміни ШИРИНИ (праворуч і ліворуч) */
+    .resize-handle-right {
+      position: absolute;
+      right: -11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 36px;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      touch-action: none;
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 265;
+    }
+
+    .resize-handle-right::after {
+      content: '';
+      width: 2px;
+      height: 14px;
+      background: #181815;
+      border-radius: 2px;
+      box-shadow: 3px 0 0 #181815;
+      margin-left: -3px;
+    }
+
+    .resize-handle-left {
+      position: absolute;
+      left: -11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 36px;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      touch-action: none;
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 265;
+    }
+
+    .resize-handle-left::after {
+      content: '';
+      width: 2px;
+      height: 14px;
+      background: #181815;
+      border-radius: 2px;
+      box-shadow: 3px 0 0 #181815;
+      margin-left: -3px;
+    }
+
+    /* Нижня і верхня ручка зміни ВИСОТИ */
+    .resize-handle-bottom {
+      position: absolute;
+      bottom: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 18px;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      touch-action: none;
+      cursor: ns-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 265;
+    }
+
+    .resize-handle-bottom::after {
+      content: '';
+      width: 14px;
+      height: 2px;
+      background: #181815;
+      border-radius: 2px;
+      box-shadow: 0 3px 0 #181815;
+      margin-top: -3px;
+    }
+
+    .resize-handle-top {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 18px;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      touch-action: none;
+      cursor: ns-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 265;
+    }
+
+    .resize-handle-top::after {
+      content: '';
+      width: 14px;
+      height: 2px;
+      background: #181815;
+      border-radius: 2px;
+      box-shadow: 0 3px 0 #181815;
+      margin-top: -3px;
+    }
+
+    /* Кутова ручка одночасної зміни ШИРИНИ та ВИСОТИ */
+    .resize-handle-corner {
+      position: absolute;
+      right: -11px;
+      bottom: -11px;
+      width: 22px;
+      height: 22px;
+      background: #181815;
+      border: 2px solid #F38A00;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
+      touch-action: none;
+      cursor: nwse-resize;
+      z-index: 266;
+    }
+
     .mini-slider-pill {
       position: absolute;
       left: 50%;
-      bottom: -34px;
+      bottom: -44px;
       transform: translateX(-50%);
-      background: rgba(24, 24, 21, 0.92);
+      background: rgba(24, 24, 21, 0.94);
       color: #FFFFFF;
       border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 999px;
@@ -265,7 +457,7 @@
 
     .mini-slider-pill.place-top {
       bottom: auto;
-      top: -34px;
+      top: -54px;
     }
 
     .mini-slider-input {
@@ -1295,7 +1487,7 @@
       border-bottom: none;
     }
 
-    /* ==================== НИЖНЯ НАВІГАЦІЯ: БІЛИЙ ФОН У БРАУЗЕРІ, БЕЗ ЗАЙВОГО ВІДСТУПУ У ДОДАТКУ ==================== */
+    /* ==================== НИЖНЯ НАВІГАЦІЯ ==================== */
     .bottom-tabs {
       position: fixed;
       left: 0;
@@ -1390,10 +1582,93 @@
       display: none;
     }
 
+    /* ==================== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВСТАНОВЛЕННЯ ==================== */
+    .install-guide-modal {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(20, 20, 18, 0.72);
+      backdrop-filter: blur(4px);
+      z-index: 320;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .install-guide-modal.open {
+      display: flex;
+    }
+
+    .install-guide-card {
+      width: 100%;
+      max-width: 390px;
+      background: #FFFFFF;
+      border-radius: 22px;
+      padding: 20px 20px 18px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .install-guide-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .install-guide-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: #1E1E1A;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-guide-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .install-guide-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .install-guide-sub {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .install-guide-steps {
+      background: #F7F5EE;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .install-guide-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     .layout-mini-controls {
       position: fixed;
       right: 12px;
-      bottom: calc(var(--safe-bottom) + 12px);
+      top: calc(var(--safe-top) + 12px);
       display: none;
       align-items: center;
       gap: 6px;
@@ -2233,7 +2508,7 @@
 
     <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ ==================== -->
     <nav id="bottom-tabs" class="bottom-tabs" data-ui-id="bottom-tabs" data-ui-name="Нижній колонтитул (Вкладки)">
-      <button class="tab-btn active" data-target="id" onclick="goToScreen('id')">
+      <button class="tab-btn active" data-ui-id="tab-id" data-ui-name="Вкладка Резерв ID" data-target="id" onclick="goToScreen('id')">
         <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
           <line x1="5" y1="14" x2="19" y2="14"/>
@@ -2245,7 +2520,7 @@
         <span>Резерв ID</span>
       </button>
 
-      <button class="tab-btn" data-target="services" onclick="goToScreen('services')">
+      <button class="tab-btn" data-ui-id="tab-services" data-ui-name="Вкладка Сервіси" data-target="services" onclick="goToScreen('services')">
         <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="4" y="4" width="6.5" height="6.5" rx="1"/>
           <rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/>
@@ -2261,7 +2536,7 @@
         <span>Сервіси</span>
       </button>
 
-      <button class="tab-btn" data-target="vacancies" onclick="goToScreen('vacancies')">
+      <button class="tab-btn" data-ui-id="tab-vacancies" data-ui-name="Вкладка Вакансії" data-target="vacancies" onclick="goToScreen('vacancies')">
         <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
           <polygon points="12 8.5 15.5 12 12 15.5 8.5 12" fill="currentColor" stroke="none"/>
@@ -2272,7 +2547,7 @@
         <span>Вакансії</span>
       </button>
 
-      <button class="tab-btn" data-target="menu" onclick="goToScreen('menu')">
+      <button class="tab-btn" data-ui-id="tab-menu" data-ui-name="Вкладка Меню" data-target="menu" onclick="goToScreen('menu')">
         <svg class="tab-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="4" y1="6" x2="20" y2="6"/>
           <line x1="4" y1="12" x2="20" y2="12"/>
@@ -2286,6 +2561,26 @@
         <span>Меню</span>
       </button>
     </nav>
+
+    <!-- ==================== МОДАЛЬНЕ ВІКНО ВСТАНОВЛЕННЯ ДОДАТКА ==================== -->
+    <div id="install-guide-modal" class="install-guide-modal" onclick="if(event.target===this) closeInstallGuide()">
+      <div class="install-guide-card">
+        <div class="install-guide-top">
+          <div class="install-guide-icon">
+            <img src="app.ico" alt="" onerror="this.style.display='none'">
+          </div>
+          <div>
+            <div class="install-guide-title">Встановити «Резерв+»</div>
+            <div class="install-guide-sub">Окремий додаток на головний екран без панелі браузера</div>
+          </div>
+        </div>
+        <div id="install-guide-steps" class="install-guide-steps"></div>
+        <div class="install-guide-actions">
+          <button class="btn-reset" style="flex: 1;" onclick="closeInstallGuide()">Закрити</button>
+          <button id="install-guide-retry-btn" class="btn-save" style="flex: 1;" onclick="retryNativeInstall()">Встановити</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ==================== ПРИХОВАНЕ МОДАЛЬНЕ ВІКНО РЕДАКТОРА ==================== -->
     <div id="editor-modal" class="editor-modal">
@@ -2361,7 +2656,7 @@
           </div>
 
           <div class="inline-edit-toggle" onclick="startLayoutEditMode()">
-            <span>Мініповзунок розміру та колонтитул компонента</span>
+            <span>Редагування ширини, висоти та позиції елементів</span>
             <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Увімкнути</span>
           </div>
 
@@ -2470,9 +2765,18 @@
     </div>
   </div>
 
+  <!-- ==================== ІНСПЕКТОР ЕЛЕМЕНТА З БІЧНИМИ ТА ВЕРТИКАЛЬНИМИ РУЧКАМИ ==================== -->
   <div id="resize-overlay" class="component-inspector-box">
     <div id="inspector-caption-badge" class="inspector-caption-badge"></div>
-    <div id="mini-slider-pill" class="mini-slider-pill" title="Пропорційний розмір компонента">
+    <div id="inspector-size-badge" class="inspector-size-badge"></div>
+
+    <div class="resize-handle-left" data-resize-dir="left" title="Ширина зліва"></div>
+    <div class="resize-handle-right" data-resize-dir="right" title="Ширина справа"></div>
+    <div class="resize-handle-top" data-resize-dir="top" title="Висота зверху"></div>
+    <div class="resize-handle-bottom" data-resize-dir="bottom" title="Висота знизу"></div>
+    <div class="resize-handle-corner" data-resize-dir="corner" title="Ширина і висота"></div>
+
+    <div id="mini-slider-pill" class="mini-slider-pill" title="Пропорційний масштаб компонента">
       <input
         id="component-scale-slider"
         class="mini-slider-input"
@@ -2579,22 +2883,71 @@
       }
 
       if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
+        try {
+          await deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          if (outcome === 'accepted') {
+            showToast('Додаток встановлюється...');
+            closeInstallGuide();
+          } else {
+            showToast('Встановлення скасовано');
+          }
+          return;
+        } catch (err) {}
+      }
+
+      openInstallGuide();
+    }
+
+    function openInstallGuide() {
+      const stepsEl = document.getElementById('install-guide-steps');
+      const retryBtn = document.getElementById('install-guide-retry-btn');
+      const ua = navigator.userAgent || '';
+      const isIos = /iphone|ipad|ipod/i.test(ua);
+      const isSamsung = /SamsungBrowser/i.test(ua);
+
+      if (isIos) {
+        stepsEl.innerHTML = `
+          <div>1. Натисніть кнопку <b>«Поділитися»</b> внизу панелі Safari.</div>
+          <div>2. Прогорніть список вниз та оберіть <b>«На екран „Домой“»</b> (Add to Home Screen).</div>
+          <div>3. Натисніть <b>«Додати»</b> у правому верхньому куті.</div>
+        `;
+        if (retryBtn) retryBtn.style.display = 'none';
+      } else if (isSamsung) {
+        stepsEl.innerHTML = `
+          <div>1. Натисніть іконку меню <b>≡</b> у правому нижньому куті браузера.</div>
+          <div>2. Оберіть <b>«Додати сторінку до»</b> → <b>«Головний екран»</b>.</div>
+          <div>3. Підтвердіть встановлення додатка.</div>
+        `;
+        if (retryBtn) retryBtn.style.display = deferredInstallPrompt ? '' : 'none';
+      } else {
+        stepsEl.innerHTML = `
+          <div>1. Натисніть <b>⋮</b> (три крапки) у правому верхньому куті браузера.</div>
+          <div>2. Натисніть <b>«Встановити додаток»</b> або <b>«Додати на головний екран»</b> → <b>«Встановити»</b>.</div>
+          <div>3. Після цього додаток з’явиться в меню програм як окремий застосунок з іконкою <b>app.ico</b>.</div>
+        `;
+        if (retryBtn) retryBtn.style.display = deferredInstallPrompt ? '' : 'none';
+      }
+
+      document.getElementById('install-guide-modal').classList.add('open');
+    }
+
+    function closeInstallGuide() {
+      document.getElementById('install-guide-modal').classList.remove('open');
+    }
+
+    async function retryNativeInstall() {
+      if (deferredInstallPrompt) {
+        await deferredInstallPrompt.prompt();
         const { outcome } = await deferredInstallPrompt.userChoice;
         deferredInstallPrompt = null;
         if (outcome === 'accepted') {
-          showToast('Встановлення додатка розпочато');
-        } else {
-          showToast('Встановлення скасовано');
+          closeInstallGuide();
+          showToast('Додаток встановлюється...');
         }
-        return;
-      }
-
-      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      if (isIos) {
-        showToast('Натисніть «Поділитися» → «На екран „Домой“»');
       } else {
-        showToast('У меню браузера (⋮) оберіть «Встановити додаток»');
+        closeInstallGuide();
       }
     }
 
@@ -2858,9 +3211,32 @@
           if (s !== 1) parts.push(`scale(${s})`);
           el.style.transform = parts.join(' ');
           el.style.transformOrigin = s !== 1 ? 'top left' : '';
+
+          if (cfg.w && cfg.w > 0) {
+            el.style.width = cfg.w + 'px';
+            el.style.maxWidth = 'none';
+            el.style.flex = 'none';
+          } else {
+            el.style.width = '';
+            el.style.maxWidth = '';
+            el.style.flex = '';
+          }
+
+          if (cfg.h && cfg.h > 0) {
+            el.style.height = cfg.h + 'px';
+            el.style.minHeight = cfg.h + 'px';
+          } else {
+            el.style.height = '';
+            el.style.minHeight = '';
+          }
         } else {
           el.style.transform = '';
           el.style.transformOrigin = '';
+          el.style.width = '';
+          el.style.maxWidth = '';
+          el.style.height = '';
+          el.style.minHeight = '';
+          el.style.flex = '';
         }
       });
 
@@ -2963,7 +3339,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v20');
+        const raw = localStorage.getItem('rezerv_ui_data_v21');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = {
@@ -3018,7 +3394,7 @@
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v20', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v21', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -3111,6 +3487,10 @@
           autoTimer = setTimeout(() => goToScreen('id'), 1800);
         }
       }
+
+      if (layoutEditMode) {
+        setTimeout(updateResizeOverlay, 30);
+      }
     }
 
     function handleCardClick() {
@@ -3178,7 +3558,7 @@
       layoutEditMode = true;
       document.body.classList.add('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.add('open');
-      showToast('Натисніть на компонент для мініповзунка та колонтитула');
+      showToast('Натисніть елемент: бічні ручки змінюють ширину і висоту');
     }
 
     function stopLayoutEditMode() {
@@ -3220,6 +3600,7 @@
       const overlay = document.getElementById('resize-overlay');
       const pill = document.getElementById('mini-slider-pill');
       const badge = document.getElementById('inspector-caption-badge');
+      const sizeBadge = document.getElementById('inspector-size-badge');
       if (!overlay || !pill) return;
 
       if (!layoutEditMode || !selectedUiId) {
@@ -3241,6 +3622,10 @@
 
       if (badge) {
         badge.textContent = getElementCaption(selectedUiId, targetEl.dataset.defaultName || selectedUiId);
+      }
+
+      if (sizeBadge) {
+        sizeBadge.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
       }
 
       overlay.style.left = rect.left + 'px';
@@ -3284,9 +3669,38 @@
     }
 
     let moveState = null;
+    let resizeState = null;
 
     document.addEventListener('pointerdown', (e) => {
       if (!layoutEditMode) return;
+
+      const handleEl = e.target.closest('[data-resize-dir]');
+      if (handleEl && selectedUiId) {
+        const targetEl = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
+        if (!targetEl) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rect = targetEl.getBoundingClientRect();
+        const gScale = (Number(appData.globalScale) || 100) / 100;
+        const cfg = appData.customLayouts[selectedUiId] || { x: 0, y: 0, scale: 1 };
+        const elScale = cfg.scale || 1;
+
+        resizeState = {
+          id: selectedUiId,
+          dir: handleEl.dataset.resizeDir,
+          startX: e.clientX,
+          startY: e.clientY,
+          origW: Math.round(rect.width / (gScale * elScale)),
+          origH: Math.round(rect.height / (gScale * elScale)),
+          origX: cfg.x || 0,
+          origY: cfg.y || 0,
+          gScale: gScale,
+          elScale: elScale
+        };
+        return;
+      }
+
       if (
         e.target.closest('#layout-toolbar') ||
         e.target.closest('#mini-slider-pill') ||
@@ -3316,20 +3730,59 @@
     }, true);
 
     document.addEventListener('pointermove', (e) => {
-      if (!layoutEditMode || !moveState) return;
-      e.preventDefault();
+      if (!layoutEditMode) return;
 
-      const dx = (e.clientX - moveState.startX) / moveState.gScale;
-      const dy = (e.clientY - moveState.startY) / moveState.gScale;
-      const cfg = appData.customLayouts[moveState.id];
-      if (!cfg) return;
+      if (resizeState) {
+        e.preventDefault();
+        const factor = resizeState.gScale * resizeState.elScale;
+        const dx = (e.clientX - resizeState.startX) / factor;
+        const dy = (e.clientY - resizeState.startY) / factor;
+        const cfg = appData.customLayouts[resizeState.id];
+        if (!cfg) return;
 
-      cfg.x = Math.round(moveState.origX + dx);
-      cfg.y = Math.round(moveState.origY + dy);
-      applyCustomLayouts();
+        const dir = resizeState.dir;
+        if (dir === 'right' || dir === 'corner') {
+          cfg.w = Math.max(24, Math.round(resizeState.origW + dx));
+        }
+        if (dir === 'left') {
+          const newW = Math.max(24, Math.round(resizeState.origW - dx));
+          const diffW = resizeState.origW - newW;
+          cfg.w = newW;
+          cfg.x = Math.round(resizeState.origX + diffW * resizeState.elScale);
+        }
+        if (dir === 'bottom' || dir === 'corner') {
+          cfg.h = Math.max(20, Math.round(resizeState.origH + dy));
+        }
+        if (dir === 'top') {
+          const newH = Math.max(20, Math.round(resizeState.origH - dy));
+          const diffH = resizeState.origH - newH;
+          cfg.h = newH;
+          cfg.y = Math.round(resizeState.origY + diffH * resizeState.elScale);
+        }
+
+        applyCustomLayouts();
+        return;
+      }
+
+      if (moveState) {
+        e.preventDefault();
+        const dx = (e.clientX - moveState.startX) / moveState.gScale;
+        const dy = (e.clientY - moveState.startY) / moveState.gScale;
+        const cfg = appData.customLayouts[moveState.id];
+        if (!cfg) return;
+
+        cfg.x = Math.round(moveState.origX + dx);
+        cfg.y = Math.round(moveState.origY + dy);
+        applyCustomLayouts();
+      }
     }, { passive: false });
 
     document.addEventListener('pointerup', () => {
+      if (resizeState) {
+        resizeState = null;
+        persistData();
+        updateResizeOverlay();
+      }
       if (moveState) {
         moveState = null;
         persistData();
@@ -3436,10 +3889,10 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {}, elementCaptions: {} };
-      localStorage.removeItem('rezerv_ui_data_v20');
+      localStorage.removeItem('rezerv_ui_data_v21');
       applyDataToUI();
       openEditor();
-      showToast('Дані, QR, шрифт, колонтитули та позиції скинуто');
+      showToast('Дані, QR, шрифт, колонтитули та розміри скинуто');
     }
 
     function toggleInlineEdit() {
