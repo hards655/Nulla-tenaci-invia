@@ -123,62 +123,61 @@
       z-index: 60;
     }
 
-    .resize-overlay-box {
+    /* Рамка виділення + мініповзунок прямо на компоненті */
+    .component-inspector-box {
       position: fixed;
       border: 2px solid #F38A00;
+      border-radius: 8px;
       pointer-events: none;
       z-index: 250;
       display: none;
       box-sizing: border-box;
     }
 
-    .resize-overlay-box.visible {
+    .component-inspector-box.visible {
       display: block;
     }
 
-    .resize-handle {
+    .mini-slider-pill {
       position: absolute;
-      background: #F38A00;
-      border: 2px solid #FFFFFF;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      left: 50%;
+      bottom: -34px;
+      transform: translateX(-50%);
+      background: rgba(24, 24, 21, 0.92);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
       pointer-events: auto;
       touch-action: none;
-      z-index: 255;
+      white-space: nowrap;
+      z-index: 260;
     }
 
-    .resize-handle.edge-n,
-    .resize-handle.edge-s {
-      width: 38px;
-      height: 12px;
-      border-radius: 999px;
-      left: 50%;
-      transform: translateX(-50%);
-      cursor: ns-resize;
+    .mini-slider-pill.place-top {
+      bottom: auto;
+      top: -34px;
     }
-    .resize-handle.edge-n { top: -7px; }
-    .resize-handle.edge-s { bottom: -7px; }
 
-    .resize-handle.edge-w,
-    .resize-handle.edge-e {
-      width: 12px;
-      height: 34px;
-      border-radius: 999px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: ew-resize;
-    }
-    .resize-handle.edge-w { left: -7px; }
-    .resize-handle.edge-e { right: -7px; }
-
-    .resize-handle.corner {
-      width: 16px;
+    .mini-slider-input {
+      width: 84px;
       height: 16px;
-      border-radius: 50%;
+      accent-color: #F38A00;
+      cursor: pointer;
+      touch-action: none;
     }
-    .resize-handle.corner-nw { top: -8px; left: -8px; cursor: nwse-resize; }
-    .resize-handle.corner-ne { top: -8px; right: -8px; cursor: nesw-resize; }
-    .resize-handle.corner-sw { bottom: -8px; left: -8px; cursor: nesw-resize; }
-    .resize-handle.corner-se { bottom: -8px; right: -8px; cursor: nwse-resize; }
+
+    .mini-slider-value {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #F9E255;
+      min-width: 34px;
+      text-align: right;
+    }
 
     html, body {
       width: 100%;
@@ -351,7 +350,7 @@
     /* ==================== ЕКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
-      padding: 0 22px 42px;
+      padding: 0 22px 28px;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -387,17 +386,120 @@
       color: var(--text-main);
     }
 
-    /* ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== */
-    .id-card {
+    /* ==================== ЕКРАН 4: РЕЗЕРВ ID + 3D ПЕРЕГОРТАННЯ СПРАВА НАЛІВО ==================== */
+    .id-flip-scene {
       flex: 1;
+      perspective: 1300px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .id-flip-inner {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transform-origin: center center;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+    }
+
+    .id-flip-inner.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .id-card,
+    .id-card-back {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
       background-color: var(--bg-card-beige);
       border: 1px solid var(--border-beige);
       border-radius: 14px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    .id-card {
       justify-content: space-between;
-      position: relative;
+      transform: rotateY(0deg);
+    }
+
+    .id-card-back {
+      transform: rotateY(180deg);
+      justify-content: center;
+      align-items: center;
+      padding: 24px 20px;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .qr-valid-title {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .qr-box {
+      width: 224px;
+      height: 224px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .qr-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .qr-box svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .qr-note-box {
+      background-color: #CFC9B4;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      max-width: 310px;
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.35;
+      color: var(--text-main);
+    }
+
+    .qr-note-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.4px solid var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
     }
 
     .id-alert-banner {
@@ -451,6 +553,7 @@
       overflow: hidden;
       flex-shrink: 0;
       position: relative;
+      cursor: pointer;
     }
 
     .photo-box img {
@@ -561,6 +664,7 @@
       align-items: center;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+      z-index: 5;
     }
 
     /* Overlay & Bottom Sheet */
@@ -949,16 +1053,17 @@
       border-bottom: none;
     }
 
-    /* ==================== НИЖНЯ ПАНЕЛЬ ВКЛАДОК ==================== */
+    /* ==================== НИЖНЯ ПАНЕЛЬ ВКЛАДОК (РОЗМІР ЗА СКРІНШОТОМ 1000299660.JPG) ==================== */
     .bottom-tabs {
       background-color: #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 10px 0 calc(10px + var(--safe-bottom));
+      min-height: 62px;
+      padding: 8px 4px calc(8px + var(--safe-bottom));
       z-index: 30;
       flex-shrink: 0;
-      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .bottom-tabs.visible {
@@ -970,13 +1075,21 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       background: none;
       border: none;
-      color: #4A4945;
+      color: #3F3E39;
       font-size: 11px;
+      line-height: 1.15;
       font-weight: 400;
       cursor: pointer;
+      padding: 2px 0;
+    }
+
+    .tab-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
     }
 
     .tab-btn.active {
@@ -1080,6 +1193,13 @@
       gap: 12px;
     }
 
+    .editor-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      padding-top: 4px;
+    }
+
     .editor-photo-row {
       display: flex;
       align-items: center;
@@ -1104,10 +1224,22 @@
       text-align: center;
     }
 
+    .editor-photo-preview.qr-preview {
+      width: 58px;
+      height: 58px;
+      background: #FFFFFF;
+      padding: 4px;
+      border: 1px solid #E5E1D3;
+    }
+
     .editor-photo-preview img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .editor-photo-preview.qr-preview img {
+      object-fit: contain;
     }
 
     .upload-label-btn {
@@ -1361,49 +1493,64 @@
       </div>
 
       <div class="card-wrapper">
-        <div class="id-card" data-ui-id="id-card" data-ui-name="Картка Резерв ID" onclick="handleCardClick()">
-          <div id="id-alert-banner" class="id-alert-banner hidden" data-bind="topAlert"></div>
+        <div class="id-flip-scene" data-ui-id="id-card" data-ui-name="Картка Резерв ID">
+          <div id="id-flip-inner" class="id-flip-inner" onclick="handleCardClick()">
+            <!-- ПЕРЕДНЯ СТОРОНА ДОКУМЕНТА -->
+            <div class="id-card">
+              <div id="id-alert-banner" class="id-alert-banner hidden" data-ui-id="id-alert" data-ui-name="Червона плашка" data-bind="topAlert"></div>
 
-          <div class="id-top-section">
-            <div class="id-header-row" data-ui-id="id-header" data-ui-name="Шапка Резерв ID">
-              <h2>Резерв ID</h2>
-              <svg width="36" height="40" viewBox="0 0 60 68" fill="none">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
-              </svg>
-            </div>
-
-            <div class="id-main-info">
-              <div class="photo-box user-photo-container" data-ui-id="id-photo" data-ui-name="Фото в документі"></div>
-
-              <div class="id-meta-col" data-ui-id="id-meta" data-ui-name="Дата та відстрочка">
-                <div class="meta-group">
-                  <span>Дата народження:</span>
-                  <strong data-bind="dob">22.03.1999</strong>
+              <div class="id-top-section">
+                <div class="id-header-row" data-ui-id="id-header" data-ui-name="Шапка Резерв ID">
+                  <h2>Резерв ID</h2>
+                  <svg width="36" height="40" viewBox="0 0 60 68" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
+                  </svg>
                 </div>
-                <div class="meta-group" id="deferral-block">
-                  <span>Відстрочка до:</span>
-                  <strong data-bind="deferral">завершення<br>мобілізації</strong>
+
+                <div class="id-main-info">
+                  <div class="photo-box user-photo-container" data-ui-id="id-photo" data-ui-name="Фото в документі" onclick="handlePhotoFlipClick(event)"></div>
+
+                  <div class="id-meta-col" data-ui-id="id-meta" data-ui-name="Дата та відстрочка">
+                    <div class="meta-group">
+                      <span>Дата народження:</span>
+                      <strong data-bind="dob">22.03.1999</strong>
+                    </div>
+                    <div class="meta-group" id="deferral-block">
+                      <span>Відстрочка до:</span>
+                      <strong data-bind="deferral">завершення<br>мобілізації</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <div id="ticker-strip" class="ticker-strip" data-ui-id="id-ticker" data-ui-name="Біжуча стрічка">
+                <div class="ticker-content" id="ticker-text">
+                  Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 •&nbsp;
+                </div>
+              </div>
+
+              <div class="id-bottom-section">
+                <div class="id-role-label" data-ui-id="id-role" data-ui-name="Статус" data-bind="role">Військовозобов’язаний</div>
+                <div class="id-full-name" data-ui-id="id-name" data-ui-name="ПІБ" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
+
+                <button class="fab-plus" data-ui-id="id-fab-plus" data-ui-name="Помаранчева кнопка +" onclick="event.stopPropagation(); handleFabClick()" aria-label="Дії з документом">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div id="ticker-strip" class="ticker-strip" data-ui-id="id-ticker" data-ui-name="Біжуча стрічка">
-            <div class="ticker-content" id="ticker-text">
-              Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 •&nbsp;
+            <!-- ЗВОРОТНА СТОРОНА З QR-КОДОМ (qr.jpg) -->
+            <div class="id-card-back">
+              <div id="qr-valid-title" class="qr-valid-title" data-ui-id="qr-title" data-ui-name="Термін дії QR" data-bind="qrTitle">QR-код дійсний до 26 листопада 2027</div>
+              <div id="qr-code-container" class="qr-box" data-ui-id="qr-box" data-ui-name="QR-код"></div>
+              <div class="qr-note-box" data-ui-id="qr-note" data-ui-name="Примітка QR">
+                <span class="qr-note-icon">i</span>
+                <span id="qr-note-text" data-bind="qrNote">Використовуйте QR-код лише за потреби та відповідально ставтеся до його поширення.</span>
+              </div>
             </div>
-          </div>
-
-          <div class="id-bottom-section">
-            <div class="id-role-label" data-ui-id="id-role" data-ui-name="Статус" data-bind="role">Військовозобов’язаний</div>
-            <div class="id-full-name" data-ui-id="id-name" data-ui-name="ПІБ" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
-
-            <button class="fab-plus" data-ui-id="id-fab-plus" data-ui-name="Помаранчева кнопка +" onclick="event.stopPropagation(); handleFabClick()" aria-label="Дії з документом">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -1453,13 +1600,13 @@
 
       <div class="full-info-scroll">
         <div class="info-card" data-ui-id="full-card-1" data-ui-name="Картка ПІБ та фото">
-          <div class="info-card-name" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
-          <div class="info-card-role" data-bind="role">Військовозобов’язаний</div>
+          <div class="info-card-name" data-ui-id="full-name" data-ui-name="ПІБ (Повна інфо)" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
+          <div class="info-card-role" data-ui-id="full-role" data-ui-name="Статус (Повна інфо)" data-bind="role">Військовозобов’язаний</div>
 
           <div class="info-photo-row">
-            <div class="photo-box user-photo-container"></div>
+            <div class="photo-box user-photo-container" data-ui-id="full-photo" data-ui-name="Фото (Повна інфо)"></div>
 
-            <div class="id-meta-col">
+            <div class="id-meta-col" data-ui-id="full-meta" data-ui-name="Дата та РНОКПП">
               <div class="meta-group">
                 <span>Дата народження:</span>
                 <strong data-bind="dob">22.03.1999</strong>
@@ -1538,7 +1685,7 @@
     <!-- ==================== ЕКРАН 5: МЕНЮ ==================== -->
     <section id="screen-menu" class="screen">
       <div class="page-title" data-ui-id="menu-title" data-ui-name="Заголовок Меню">Меню</div>
-      <div class="app-version">Версія 2.6.0</div>
+      <div class="app-version" data-ui-id="menu-version" data-ui-name="Версія застосунку">Версія 2.6.0</div>
 
       <div class="menu-card" data-ui-id="menu-card-1" data-ui-name="Картка сесій">
         <div class="menu-row" onclick="showToast('Активні сесії: 1 пристрій')">
@@ -1623,7 +1770,7 @@
 
       <button class="logout-btn" data-ui-id="menu-logout-btn" data-ui-name="Кнопка Вийти" onclick="goToScreen('pin')">Вийти</button>
 
-      <div class="privacy-link" onclick="showToast('Повідомлення про обробку персональних даних')">
+      <div class="privacy-link" data-ui-id="menu-privacy" data-ui-name="Повідомлення про дані" onclick="showToast('Повідомлення про обробку персональних даних')">
         Повідомлення про обробку<br>персональних даних
       </div>
     </section>
@@ -1631,7 +1778,7 @@
     <!-- ==================== ЕКРАН 6: ВАКАНСІЇ ==================== -->
     <section id="screen-vacancies" class="screen">
       <div>
-        <div class="vac-top-icon">
+        <div class="vac-top-icon" data-ui-id="vac-top-icon" data-ui-name="Іконка довідки Вакансії">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.7" style="cursor:pointer" onclick="showToast('Інформація про сервіс вакансій')">
             <circle cx="12" cy="12" r="9.5"/>
             <path d="M9.5 9.5a2.5 2.5 0 0 1 4.8.9c0 1.6-2.3 2.1-2.3 3.4" stroke-linecap="round"/>
@@ -1639,7 +1786,7 @@
           </svg>
         </div>
 
-        <div class="vac-content">
+        <div class="vac-content" data-ui-id="vac-content" data-ui-name="Текст Вакансії">
           <h1>Вакансії</h1>
           <p>
             Тут знаходяться актуальні посади для служби в українському війську, надані у співпраці з платформою Lobby X.
@@ -1650,7 +1797,7 @@
         </div>
       </div>
 
-      <div class="vac-bottom">
+      <div class="vac-bottom" data-ui-id="vac-bottom" data-ui-name="Нижній блок Вакансії">
         <div class="checkbox-row" onclick="toggleCheckbox(this)">
           <div class="custom-checkbox"></div>
           <span>Більше не показувати</span>
@@ -1664,39 +1811,39 @@
 
     <!-- ==================== ЕКРАН 7: СЕРВІСИ ==================== -->
     <section id="screen-services" class="screen">
-      <div class="page-title">Сервіси</div>
+      <div class="page-title" data-ui-id="services-title" data-ui-name="Заголовок Сервіси">Сервіси</div>
 
-      <div class="service-item" onclick="showToast('Виправити дані онлайн')">
+      <div class="service-item" data-ui-id="srv-1" data-ui-name="Виправити дані онлайн" onclick="showToast('Виправити дані онлайн')">
         <span>Виправити дані онлайн</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Запит на відстрочку')">
+      <div class="service-item" data-ui-id="srv-2" data-ui-name="Запит на відстрочку" onclick="showToast('Запит на відстрочку')">
         <span>Запит на відстрочку</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Направлення на ВЛК')">
+      <div class="service-item" data-ui-id="srv-3" data-ui-name="Направлення на ВЛК" onclick="showToast('Направлення на ВЛК')">
         <span>Направлення на ВЛК</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Розширені дані з реєстру')">
+      <div class="service-item" data-ui-id="srv-4" data-ui-name="Розширені дані з реєстру" onclick="showToast('Розширені дані з реєстру')">
         <span>Розширені дані з реєстру</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Стати на облік')">
+      <div class="service-item" data-ui-id="srv-5" data-ui-name="Стати на облік" onclick="showToast('Стати на облік')">
         <span>Стати на облік</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Уточнити контактні дані')">
+      <div class="service-item" data-ui-id="srv-6" data-ui-name="Уточнити контактні дані" onclick="showToast('Уточнити контактні дані')">
         <span>Уточнити контактні дані</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="service-item" onclick="showToast('Штрафи')">
+      <div class="service-item" data-ui-id="srv-7" data-ui-name="Штрафи" onclick="showToast('Штрафи')">
         <span>Штрафи</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
@@ -1745,7 +1892,7 @@
     <div id="editor-modal" class="editor-modal">
       <div class="editor-box">
         <div class="editor-header">
-          <h3>Редактор даних, шрифту та макету</h3>
+          <h3>Редактор даних, QR, шрифту та макету</h3>
           <button class="editor-close" onclick="closeEditor()">✕</button>
         </div>
 
@@ -1768,6 +1915,27 @@
               <input type="file" id="splash-upload-input" accept="image/*" style="display: none;" onchange="handleSplashUpload(event)">
               <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">За замовчуванням береться з load.jpg у GitHub</div>
             </div>
+          </div>
+
+          <!-- Редагування QR-коду -->
+          <div class="editor-section-title">Редагування QR-коду (зворотний бік)</div>
+          <div class="editor-photo-row">
+            <div class="editor-photo-preview qr-preview" id="editor-qr-preview"></div>
+            <div>
+              <label for="qr-upload-input" class="upload-label-btn">Завантажити QR-код</label>
+              <input type="file" id="qr-upload-input" accept="image/*" style="display: none;" onchange="handleQrUpload(event)">
+              <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">За замовчуванням береться з qr.jpg</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Текст терміну дії QR-коду</label>
+            <input type="text" id="inp-qrTitle">
+          </div>
+
+          <div class="field-group">
+            <label>Примітка під QR-кодом</label>
+            <textarea id="inp-qrNote" rows="2"></textarea>
           </div>
 
           <!-- Вибір шрифту -->
@@ -1798,10 +1966,10 @@
             <input type="range" id="inp-globalScale" min="75" max="125" value="100" oninput="handleGlobalScaleChange(this.value)">
           </div>
 
-          <!-- Режим перетягування, колонтитулів та звуження/розширення -->
+          <!-- Прямий режим мініповзунка на кожному компоненті -->
           <div class="inline-edit-toggle" onclick="startLayoutEditMode()">
-            <span>Рухати, тягнути колонтитули, звужувати / розширювати</span>
-            <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Відкрити</span>
+            <span>Мініповзунок розміру на кожному компоненті (без панелі)</span>
+            <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Увімкнути</span>
           </div>
 
           <!-- Режим редагування тексту кліком -->
@@ -1907,16 +2075,20 @@
     </div>
   </div>
 
-  <!-- ==================== РАМКА З МАРКЕРАМИ ДЛЯ КОЛОНТИТУЛІВ ТА ШИРИНИ/ВИСОТИ ==================== -->
-  <div id="resize-overlay" class="resize-overlay-box">
-    <div class="resize-handle edge-n" data-dir="n" title="Тягнути верхній колонтитул"></div>
-    <div class="resize-handle edge-s" data-dir="s" title="Тягнути нижній колонтитул"></div>
-    <div class="resize-handle edge-w" data-dir="w" title="Звузити / розширити зліва"></div>
-    <div class="resize-handle edge-e" data-dir="e" title="Звузити / розширити справа"></div>
-    <div class="resize-handle corner corner-nw" data-dir="nw"></div>
-    <div class="resize-handle corner corner-ne" data-dir="ne"></div>
-    <div class="resize-handle corner corner-sw" data-dir="sw"></div>
-    <div class="resize-handle corner corner-se" data-dir="se"></div>
+  <!-- ==================== РАМКА З МІНІПОВЗУНКОМ НА ВИБРАНОМУ КОМПОНЕНТІ ==================== -->
+  <div id="resize-overlay" class="component-inspector-box">
+    <div id="mini-slider-pill" class="mini-slider-pill" title="Пропорційний розмір компонента">
+      <input
+        id="component-scale-slider"
+        class="mini-slider-input"
+        type="range"
+        min="50"
+        max="180"
+        value="100"
+        oninput="handleComponentSliderChange(this.value)"
+      />
+      <span id="component-scale-label" class="mini-slider-value">100%</span>
+    </div>
   </div>
 
   <!-- ==================== ДВІ МАЛЕНЬКІ КНОПКИ СПРАВА ЗНИЗУ ==================== -->
@@ -1944,6 +2116,9 @@
       address: 'Україна, Харківська, Мала Данилівка, Академічна, б. 4, кв. 183',
       verifiedStatus: 'Дані уточнено вчасно',
       verifiedDate: '20.05.2024',
+      qrTitle: 'QR-код дійсний до 26 листопада 2027',
+      qrNote: 'Використовуйте QR-код лише за потреби та відповідально ставтеся до його поширення.',
+      qrDataUrl: '',
       photoDataUrl: '',
       splashDataUrl: '',
       fontFamily: 'e-Ukraine',
@@ -1972,9 +2147,38 @@
     let layoutEditMode = false;
     let selectedUiId = null;
     let githubImageAvailable = false;
+    let githubQrAvailable = false;
+    let isCardFlipped = false;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
+
+    function defaultQrSVG() {
+      return `
+        <svg viewBox="0 0 120 120" fill="#181815" xmlns="http://www.w3.org/2000/svg">
+          <rect width="120" height="120" fill="#FFFFFF"/>
+          <rect x="8" y="8" width="28" height="28" rx="4" fill="none" stroke="#181815" stroke-width="5"/>
+          <rect x="16" y="16" width="12" height="12" rx="1.5"/>
+          <rect x="84" y="8" width="28" height="28" rx="4" fill="none" stroke="#181815" stroke-width="5"/>
+          <rect x="92" y="16" width="12" height="12" rx="1.5"/>
+          <rect x="8" y="84" width="28" height="28" rx="4" fill="none" stroke="#181815" stroke-width="5"/>
+          <rect x="16" y="92" width="12" height="12" rx="1.5"/>
+          <rect x="44" y="12" width="8" height="8"/><rect x="58" y="12" width="8" height="8"/><rect x="44" y="26" width="14" height="8"/>
+          <rect x="12" y="44" width="8" height="14"/><rect x="26" y="44" width="8" height="8"/><rect x="44" y="44" width="12" height="12"/><rect x="64" y="44" width="8" height="8"/><rect x="80" y="44" width="12" height="8"/><rect x="98" y="44" width="14" height="14"/>
+          <rect x="12" y="64" width="14" height="8"/><rect x="34" y="60" width="8" height="14"/><rect x="52" y="62" width="10" height="10"/><rect x="70" y="60" width="14" height="8"/><rect x="92" y="64" width="8" height="12"/><rect x="104" y="66" width="8" height="8"/>
+          <rect x="44" y="80" width="8" height="14"/><rect x="58" y="80" width="12" height="8"/><rect x="76" y="82" width="8" height="12"/><rect x="90" y="84" width="22" height="8"/><rect x="44" y="102" width="18" height="10"/><rect x="68" y="98" width="10" height="14"/><rect x="86" y="98" width="12" height="14"/><rect x="104" y="98" width="8" height="14"/>
+        </svg>
+      `;
+    }
+
+    function toggleCardFlip() {
+      if (inlineEditEnabled || layoutEditMode) return;
+      isCardFlipped = !isCardFlipped;
+      const inner = document.getElementById('id-flip-inner');
+      if (inner) {
+        inner.classList.toggle('flipped', isCardFlipped);
+      }
+    }
 
     function applyFontSettings() {
       const customStyleEl = document.getElementById('custom-font-style');
@@ -2105,33 +2309,15 @@
         if (cfg) {
           const x = cfg.x || 0;
           const y = cfg.y || 0;
-          el.style.transform = (x !== 0 || y !== 0) ? `translate(${x}px, ${y}px)` : '';
-
-          if (cfg.w) {
-            el.style.width = cfg.w + 'px';
-            el.style.maxWidth = 'none';
-            el.style.flex = 'none';
-          } else {
-            el.style.width = '';
-            el.style.maxWidth = '';
-            el.style.flex = '';
-          }
-
-          if (cfg.h) {
-            el.style.height = cfg.h + 'px';
-            el.style.minHeight = cfg.h + 'px';
-            el.style.flex = 'none';
-          } else {
-            el.style.height = '';
-            el.style.minHeight = '';
-          }
+          const s = cfg.scale || 1;
+          const parts = [];
+          if (x !== 0 || y !== 0) parts.push(`translate(${x}px, ${y}px)`);
+          if (s !== 1) parts.push(`scale(${s})`);
+          el.style.transform = parts.join(' ');
+          el.style.transformOrigin = s !== 1 ? 'top left' : '';
         } else {
           el.style.transform = '';
-          el.style.width = '';
-          el.style.maxWidth = '';
-          el.style.height = '';
-          el.style.minHeight = '';
-          el.style.flex = '';
+          el.style.transformOrigin = '';
         }
       });
 
@@ -2144,6 +2330,12 @@
       if (lbl) lbl.textContent = appData.globalScale + '%';
       applyCustomLayouts();
       persistData();
+    }
+
+    function getActiveQrSource() {
+      if (appData.qrDataUrl) return appData.qrDataUrl;
+      if (githubQrAvailable) return `qr.jpg?v=${CACHE_BUSTER}`;
+      return '';
     }
 
     function applyDataToUI() {
@@ -2187,6 +2379,25 @@
         }
       });
 
+      const activeQrSrc = getActiveQrSource();
+      const qrContainer = document.getElementById('qr-code-container');
+      if (qrContainer) {
+        if (activeQrSrc) {
+          qrContainer.innerHTML = `<img src="${activeQrSrc}" alt="QR-код">`;
+        } else {
+          qrContainer.innerHTML = defaultQrSVG();
+        }
+      }
+
+      const qrPreview = document.getElementById('editor-qr-preview');
+      if (qrPreview) {
+        if (activeQrSrc) {
+          qrPreview.innerHTML = `<img src="${activeQrSrc}" alt="QR">`;
+        } else {
+          qrPreview.innerHTML = defaultQrSVG();
+        }
+      }
+
       const splashImg = document.getElementById('splash-custom-img');
       const splashPreview = document.getElementById('editor-splash-preview');
       const activeSplashSrc = appData.splashDataUrl || `load.jpg?v=${CACHE_BUSTER}`;
@@ -2205,7 +2416,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v15');
+        const raw = localStorage.getItem('rezerv_ui_data_v19');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
@@ -2234,12 +2445,23 @@
       };
       imgProbe.src = 'image.jpg?v=' + CACHE_BUSTER;
 
+      const qrProbe = new Image();
+      qrProbe.onload = () => {
+        githubQrAvailable = true;
+        applyDataToUI();
+      };
+      qrProbe.onerror = () => {
+        githubQrAvailable = false;
+        applyDataToUI();
+      };
+      qrProbe.src = 'qr.jpg?v=' + CACHE_BUSTER;
+
       applyDataToUI();
     }
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v15', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v19', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2260,6 +2482,12 @@
     function goToScreen(name) {
       clearTimeout(autoTimer);
       currentScreen = name;
+
+      if (name !== 'id') {
+        isCardFlipped = false;
+        const inner = document.getElementById('id-flip-inner');
+        if (inner) inner.classList.remove('flipped');
+      }
 
       document.querySelectorAll('.screen').forEach(sec => {
         sec.classList.toggle('active', sec.id === 'screen-' + name);
@@ -2312,7 +2540,13 @@
 
     function handleCardClick() {
       if (inlineEditEnabled || layoutEditMode) return;
-      toggleSheet(true);
+      toggleCardFlip();
+    }
+
+    function handlePhotoFlipClick(event) {
+      if (inlineEditEnabled || layoutEditMode) return;
+      event.stopPropagation();
+      toggleCardFlip();
     }
 
     function handleFabClick() {
@@ -2364,13 +2598,13 @@
       }, 1800);
     }
 
-    /* ==================== РЕЖИМ ПЕРЕМІЩЕННЯ, КОЛОНТИТУЛІВ ТА ШИРИНИ/ВИСОТИ ==================== */
+    /* ==================== МІНІПОВЗУНОК НА ВИБРАНОМУ КОМПОНЕНТІ ==================== */
     function startLayoutEditMode() {
       closeEditor();
       layoutEditMode = true;
       document.body.classList.add('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.add('open');
-      showToast('Натисніть на елемент');
+      showToast('Натисніть на компонент для мініповзунка');
     }
 
     function stopLayoutEditMode() {
@@ -2384,9 +2618,33 @@
       showToast('Збережено');
     }
 
+    function syncMiniSliderToSelected() {
+      const slider = document.getElementById('component-scale-slider');
+      const label = document.getElementById('component-scale-label');
+      if (!slider || !label || !selectedUiId) return;
+      const cfg = appData.customLayouts[selectedUiId] || { x: 0, y: 0, scale: 1 };
+      const pct = Math.round((cfg.scale || 1) * 100);
+      slider.value = Math.min(180, Math.max(50, pct));
+      label.textContent = pct + '%';
+    }
+
+    function handleComponentSliderChange(val) {
+      if (!selectedUiId) return;
+      if (!appData.customLayouts[selectedUiId]) {
+        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 1 };
+      }
+      const pct = Math.min(180, Math.max(50, Number(val) || 100));
+      appData.customLayouts[selectedUiId].scale = Number((pct / 100).toFixed(2));
+      const label = document.getElementById('component-scale-label');
+      if (label) label.textContent = pct + '%';
+      applyCustomLayouts();
+      persistData();
+    }
+
     function updateResizeOverlay() {
       const overlay = document.getElementById('resize-overlay');
-      if (!overlay) return;
+      const pill = document.getElementById('mini-slider-pill');
+      if (!overlay || !pill) return;
 
       if (!layoutEditMode || !selectedUiId) {
         overlay.classList.remove('visible');
@@ -2410,6 +2668,11 @@
       overlay.style.width = rect.width + 'px';
       overlay.style.height = rect.height + 'px';
       overlay.classList.add('visible');
+
+      const nearBottom = rect.bottom > window.innerHeight - 95;
+      pill.classList.toggle('place-top', nearBottom);
+
+      syncMiniSliderToSelected();
     }
 
     function selectLayoutElement(el) {
@@ -2418,7 +2681,7 @@
       selectedUiId = el.dataset.uiId;
 
       if (!appData.customLayouts[selectedUiId]) {
-        appData.customLayouts[selectedUiId] = { x: 0, y: 0, w: null, h: null };
+        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 1 };
       }
 
       updateResizeOverlay();
@@ -2426,7 +2689,7 @@
 
     function resetSelectedElementLayout() {
       if (!selectedUiId) {
-        showToast('Спочатку натисніть на елемент');
+        showToast('Спочатку натисніть на компонент');
         return;
       }
       delete appData.customLayouts[selectedUiId];
@@ -2436,39 +2699,11 @@
       showToast('Скинуто');
     }
 
-    let actionState = null;
+    let moveState = null;
 
     document.addEventListener('pointerdown', (e) => {
       if (!layoutEditMode) return;
-      if (e.target.closest('#layout-toolbar')) return;
-
-      const gScale = (Number(appData.globalScale) || 100) / 100;
-
-      const handleEl = e.target.closest('.resize-handle');
-      if (handleEl && selectedUiId) {
-        const targetEl = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
-        if (!targetEl) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        const rect = targetEl.getBoundingClientRect();
-        const cfg = appData.customLayouts[selectedUiId] || { x: 0, y: 0, w: null, h: null };
-
-        actionState = {
-          mode: 'resize',
-          dir: handleEl.dataset.dir,
-          id: selectedUiId,
-          startX: e.clientX,
-          startY: e.clientY,
-          origX: cfg.x || 0,
-          origY: cfg.y || 0,
-          origW: rect.width / gScale,
-          origH: rect.height / gScale,
-          gScale: gScale
-        };
-        return;
-      }
+      if (e.target.closest('#layout-toolbar') || e.target.closest('#mini-slider-pill')) return;
 
       const targetEl = e.target.closest('[data-ui-id]');
       if (!targetEl) return;
@@ -2479,10 +2714,10 @@
       selectLayoutElement(targetEl);
 
       const id = targetEl.dataset.uiId;
-      const cfg = appData.customLayouts[id] || { x: 0, y: 0, w: null, h: null };
+      const cfg = appData.customLayouts[id] || { x: 0, y: 0, scale: 1 };
+      const gScale = (Number(appData.globalScale) || 100) / 100;
 
-      actionState = {
-        mode: 'move',
+      moveState = {
         id: id,
         startX: e.clientX,
         startY: e.clientY,
@@ -2493,54 +2728,22 @@
     }, true);
 
     document.addEventListener('pointermove', (e) => {
-      if (!layoutEditMode || !actionState) return;
+      if (!layoutEditMode || !moveState) return;
       e.preventDefault();
 
-      const dx = (e.clientX - actionState.startX) / actionState.gScale;
-      const dy = (e.clientY - actionState.startY) / actionState.gScale;
-      const cfg = appData.customLayouts[actionState.id];
+      const dx = (e.clientX - moveState.startX) / moveState.gScale;
+      const dy = (e.clientY - moveState.startY) / moveState.gScale;
+      const cfg = appData.customLayouts[moveState.id];
+      if (!cfg) return;
 
-      if (actionState.mode === 'move') {
-        cfg.x = Math.round(actionState.origX + dx);
-        cfg.y = Math.round(actionState.origY + dy);
-      } else if (actionState.mode === 'resize') {
-        const dir = actionState.dir;
-        let newW = actionState.origW;
-        let newH = actionState.origH;
-        let newX = actionState.origX;
-        let newY = actionState.origY;
-
-        if (dir.includes('e')) {
-          newW = Math.max(24, Math.round(actionState.origW + dx));
-        }
-        if (dir.includes('w')) {
-          const proposedW = Math.max(24, Math.round(actionState.origW - dx));
-          const actualDx = actionState.origW - proposedW;
-          newW = proposedW;
-          newX = Math.round(actionState.origX + actualDx);
-        }
-        if (dir.includes('s')) {
-          newH = Math.max(20, Math.round(actionState.origH + dy));
-        }
-        if (dir.includes('n')) {
-          const proposedH = Math.max(20, Math.round(actionState.origH - dy));
-          const actualDy = actionState.origH - proposedH;
-          newH = proposedH;
-          newY = Math.round(actionState.origY + actualDy);
-        }
-
-        if (dir.includes('e') || dir.includes('w')) cfg.w = newW;
-        if (dir.includes('n') || dir.includes('s')) cfg.h = newH;
-        cfg.x = newX;
-        cfg.y = newY;
-      }
-
+      cfg.x = Math.round(moveState.origX + dx);
+      cfg.y = Math.round(moveState.origY + dy);
       applyCustomLayouts();
     }, { passive: false });
 
     document.addEventListener('pointerup', () => {
-      if (actionState) {
-        actionState = null;
+      if (moveState) {
+        moveState = null;
         persistData();
         updateResizeOverlay();
       }
@@ -2568,7 +2771,7 @@
     }
 
     function openEditor() {
-      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
         if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
@@ -2615,8 +2818,21 @@
       reader.readAsDataURL(file);
     }
 
+    function handleQrUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appData.qrDataUrl = e.target.result;
+        applyDataToUI();
+        persistData();
+        showToast('QR-код збережено');
+      };
+      reader.readAsDataURL(file);
+    }
+
     function saveEditorFields() {
-      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
+      const skipKeys = ['photoDataUrl', 'splashDataUrl', 'qrDataUrl', 'customLayouts', 'globalScale', 'fontFamily', 'customFontDataUrl'];
       Object.keys(defaultData).forEach(key => {
         if (skipKeys.includes(key)) return;
         const input = document.getElementById('inp-' + key);
@@ -2630,10 +2846,10 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {} };
-      localStorage.removeItem('rezerv_ui_data_v15');
+      localStorage.removeItem('rezerv_ui_data_v19');
       applyDataToUI();
       openEditor();
-      showToast('Дані, шрифт та позиції скинуто');
+      showToast('Дані, QR, шрифт та позиції скинуто');
     }
 
     function toggleInlineEdit() {
@@ -2644,6 +2860,7 @@
         '.id-alert-banner', '.pin-header', '.loading-card h2', '.loading-card p',
         '.id-header-row h2', '.meta-group span', '.meta-group strong',
         '.id-role-label', '.id-full-name', '.ticker-content',
+        '.qr-valid-title', '#qr-note-text',
         '.info-card-name', '.info-card-role', '.info-label',
         '.info-value', '.info-paragraph', '.verified-header span:last-child',
         '.page-title', '.app-version', '.menu-row-left span',
