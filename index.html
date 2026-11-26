@@ -10,15 +10,15 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <!-- Иконка app.ico только для значка приложения -->
+  <!-- Іконка app.ico тільки для значка застосунку -->
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
-  <!-- Генерация Manifest и конвертация app.ico в PNG для iOS Safari и Android -->
+  <!-- Генерація Manifest та конвертація app.ico в PNG для iOS Safari і Android -->
   <script>
     (function() {
       const startUrl = new URL('.', window.location.href).href;
-      const rawIcoUrl = new URL('app.ico', window.location.href).href;
+      const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
 
       function attachManifest(iconSrc, iconType) {
         const oldManifest = document.getElementById('dynamic-manifest');
@@ -137,6 +137,18 @@
       outline: 1.5px dashed #F38A00;
       border-radius: 4px;
       background-color: rgba(243, 138, 0, 0.08);
+    }
+
+    body.layout-edit-mode [data-ui-id] {
+      outline: 1px dashed rgba(243, 138, 0, 0.65);
+      touch-action: none;
+      cursor: grab;
+    }
+
+    body.layout-edit-mode [data-ui-id].layout-selected {
+      outline: 2.5px solid #F38A00 !important;
+      box-shadow: 0 0 0 4px rgba(243, 138, 0, 0.22);
+      z-index: 60;
     }
 
     html, body {
@@ -262,11 +274,10 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.08s, background-color 0.15s;
+      transition: background-color 0.15s;
     }
 
     .num-btn:active {
-      transform: scale(0.94);
       background-color: #F0EFEA;
     }
 
@@ -518,11 +529,6 @@
       align-items: center;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
-      transition: transform 0.12s;
-    }
-
-    .fab-plus:active {
-      transform: scale(0.92);
     }
 
     /* Overlay & Bottom Sheet */
@@ -949,6 +955,80 @@
       font-weight: 500;
     }
 
+    /* ==================== ПЛАВАЮЧА ПАНЕЛЬ РУХУ ТА РОЗМІРУ ЕЛЕМЕНТІВ ==================== */
+    .layout-toolbar {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 14px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 390px;
+      background: rgba(24, 24, 21, 0.95);
+      color: #FFFFFF;
+      border-radius: 16px;
+      padding: 12px 14px;
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .layout-toolbar.open {
+      display: flex;
+    }
+
+    .layout-toolbar-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .layout-toolbar-top strong {
+      color: #F38A00;
+      font-weight: 500;
+    }
+
+    .layout-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .layout-slider-row input[type="range"] {
+      flex: 1;
+      accent-color: #F38A00;
+    }
+
+    .layout-toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lt-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      font-family: 'e-Ukraine', sans-serif;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .lt-btn-reset {
+      background: #3A3933;
+      color: #FFFFFF;
+    }
+
+    .lt-btn-done {
+      background: #F38A00;
+      color: #181815;
+    }
+
     /* ==================== ПРИХОВАНЕ МОДАЛЬНЕ ВІКНО РЕДАКТОРА ==================== */
     .editor-modal {
       position: absolute;
@@ -1063,6 +1143,28 @@
       cursor: pointer;
     }
 
+    .scale-control-box {
+      background: #F7F5EE;
+      padding: 10px 12px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .scale-control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .scale-control-box input[type="range"] {
+      width: 100%;
+      accent-color: #F38A00;
+    }
+
     .field-group {
       display: flex;
       flex-direction: column;
@@ -1173,32 +1275,32 @@
 
     <!-- ==================== ЕКРАН 1: SPLASH (ТІЛЬКИ ФОТО load.jpg) ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
-      <img id="splash-custom-img" class="splash-custom-img" src="load.jpg" alt="" onerror="this.style.display='none'">
+      <img id="splash-custom-img" class="splash-custom-img" alt="">
     </section>
 
     <!-- ==================== ЕКРАН 2: PIN CODE ==================== -->
     <section id="screen-pin" class="screen">
-      <div class="pin-header">Код для входу</div>
+      <div class="pin-header" data-ui-id="pin-header" data-ui-name="Заголовок PIN">Код для входу</div>
 
-      <div class="pin-dots" id="pin-dots">
+      <div class="pin-dots" id="pin-dots" data-ui-id="pin-dots" data-ui-name="Точки PIN">
         <div class="pin-dot"></div>
         <div class="pin-dot"></div>
         <div class="pin-dot"></div>
         <div class="pin-dot"></div>
       </div>
 
-      <div class="numpad">
-        <button class="num-btn" onclick="pressDigit(1)">1</button>
-        <button class="num-btn" onclick="pressDigit(2)">2</button>
-        <button class="num-btn" onclick="pressDigit(3)">3</button>
-        <button class="num-btn" onclick="pressDigit(4)">4</button>
-        <button class="num-btn" onclick="pressDigit(5)">5</button>
-        <button class="num-btn" onclick="pressDigit(6)">6</button>
-        <button class="num-btn" onclick="pressDigit(7)">7</button>
-        <button class="num-btn" onclick="pressDigit(8)">8</button>
-        <button class="num-btn" onclick="pressDigit(9)">9</button>
+      <div class="numpad" data-ui-id="pin-numpad" data-ui-name="Блок клавіатури">
+        <button class="num-btn" data-ui-id="pin-btn-1" data-ui-name="Кнопка 1" onclick="pressDigit(1)">1</button>
+        <button class="num-btn" data-ui-id="pin-btn-2" data-ui-name="Кнопка 2" onclick="pressDigit(2)">2</button>
+        <button class="num-btn" data-ui-id="pin-btn-3" data-ui-name="Кнопка 3" onclick="pressDigit(3)">3</button>
+        <button class="num-btn" data-ui-id="pin-btn-4" data-ui-name="Кнопка 4" onclick="pressDigit(4)">4</button>
+        <button class="num-btn" data-ui-id="pin-btn-5" data-ui-name="Кнопка 5" onclick="pressDigit(5)">5</button>
+        <button class="num-btn" data-ui-id="pin-btn-6" data-ui-name="Кнопка 6" onclick="pressDigit(6)">6</button>
+        <button class="num-btn" data-ui-id="pin-btn-7" data-ui-name="Кнопка 7" onclick="pressDigit(7)">7</button>
+        <button class="num-btn" data-ui-id="pin-btn-8" data-ui-name="Кнопка 8" onclick="pressDigit(8)">8</button>
+        <button class="num-btn" data-ui-id="pin-btn-9" data-ui-name="Кнопка 9" onclick="pressDigit(9)">9</button>
 
-        <button class="num-btn transparent" onclick="goToScreen('loading')" aria-label="Біометрія">
+        <button class="num-btn transparent" data-ui-id="pin-btn-bio" data-ui-name="Кнопка біометрії" onclick="goToScreen('loading')" aria-label="Біометрія">
           <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round">
             <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
             <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
@@ -1212,9 +1314,9 @@
           </svg>
         </button>
 
-        <button class="num-btn" onclick="pressDigit(0)">0</button>
+        <button class="num-btn" data-ui-id="pin-btn-0" data-ui-name="Кнопка 0" onclick="pressDigit(0)">0</button>
 
-        <button class="num-btn transparent" onclick="deleteDigit()" aria-label="Стерти">
+        <button class="num-btn transparent" data-ui-id="pin-btn-del" data-ui-name="Кнопка стерти" onclick="deleteDigit()" aria-label="Стерти">
           <svg width="34" height="24" viewBox="0 0 32 22" fill="none">
             <path d="M10 1H29C30.1 1 31 1.9 31 3V19C31 20.1 30.1 21 29 21H10L2 11L10 1Z" fill="#FFFFFF"/>
             <path d="M16 7.5L23 14.5M23 7.5L16 14.5" stroke="#181815" stroke-width="1.8" stroke-linecap="round"/>
@@ -1222,7 +1324,7 @@
         </button>
       </div>
 
-      <div class="forgot-pin" onclick="showToast('Відновлення через BankID')">
+      <div class="forgot-pin" data-ui-id="pin-forgot" data-ui-name="Напис Не пам’ятаю код" onclick="showToast('Відновлення через BankID')">
         Не пам’ятаю код для входу
       </div>
     </section>
@@ -1230,7 +1332,7 @@
     <!-- ==================== ЕКРАН 3: LOADING REGISTRY ==================== -->
     <section id="screen-loading" class="screen">
       <div class="top-action-row">
-        <button class="notif-pill" onclick="showToast('Нових сповіщень немає')">
+        <button class="notif-pill" data-ui-id="notif-btn-loading" data-ui-name="Кнопка Сповіщення" onclick="showToast('Нових сповіщень немає')">
           <span>Сповіщення</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
             <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
@@ -1239,10 +1341,10 @@
       </div>
 
       <div class="card-wrapper">
-        <div class="loading-card" onclick="goToScreen('id')">
-          <svg width="44" height="50" viewBox="0 0 60 68" fill="none">
-            <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#181815"/>
-            <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#DDD8C4"/>
+        <div class="loading-card" data-ui-id="loading-card" data-ui-name="Картка завантаження" onclick="goToScreen('id')">
+          <!-- Точний герб Міністерства оборони України за зразком -->
+          <svg width="46" height="52" viewBox="0 0 60 68" fill="none">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
           </svg>
           <h2>Отримуємо<br>інформацію з<br>реєстру</h2>
           <p>Поки ми шукаємо дані,<br>перегляньте вакансії в Силах<br>оборони</p>
@@ -1253,7 +1355,7 @@
     <!-- ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== -->
     <section id="screen-id" class="screen">
       <div class="top-action-row">
-        <button class="notif-pill" onclick="showToast('Нових сповіщень немає')">
+        <button class="notif-pill" data-ui-id="notif-btn-id" data-ui-name="Кнопка Сповіщення" onclick="showToast('Нових сповіщень немає')">
           <span>Сповіщення</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
             <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
@@ -1262,22 +1364,22 @@
       </div>
 
       <div class="card-wrapper">
-        <div class="id-card" onclick="handleCardClick()">
+        <div class="id-card" data-ui-id="id-card" data-ui-name="Картка Резерв ID" onclick="handleCardClick()">
           <div id="id-alert-banner" class="id-alert-banner hidden" data-bind="topAlert"></div>
 
           <div class="id-top-section">
-            <div class="id-header-row">
+            <div class="id-header-row" data-ui-id="id-header" data-ui-name="Шапка Резерв ID">
               <h2>Резерв ID</h2>
-              <svg width="34" height="38" viewBox="0 0 60 68" fill="none">
-                <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#181815"/>
-                <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#D5D0BC"/>
+              <!-- Точний герб Міністерства оборони України за зразком -->
+              <svg width="36" height="40" viewBox="0 0 60 68" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
               </svg>
             </div>
 
             <div class="id-main-info">
-              <div class="photo-box user-photo-container"></div>
+              <div class="photo-box user-photo-container" data-ui-id="id-photo" data-ui-name="Фото в документі"></div>
 
-              <div class="id-meta-col">
+              <div class="id-meta-col" data-ui-id="id-meta" data-ui-name="Дата та відстрочка">
                 <div class="meta-group">
                   <span>Дата народження:</span>
                   <strong data-bind="dob">22.03.1999</strong>
@@ -1290,17 +1392,17 @@
             </div>
           </div>
 
-          <div id="ticker-strip" class="ticker-strip">
+          <div id="ticker-strip" class="ticker-strip" data-ui-id="id-ticker" data-ui-name="Біжуча стрічка">
             <div class="ticker-content" id="ticker-text">
               Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 • Документ оновлено о 13:58 | 28.08.2026 •&nbsp;
             </div>
           </div>
 
           <div class="id-bottom-section">
-            <div class="id-role-label" data-bind="role">Військовозобов’язаний</div>
-            <div class="id-full-name" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
+            <div class="id-role-label" data-ui-id="id-role" data-ui-name="Статус" data-bind="role">Військовозобов’язаний</div>
+            <div class="id-full-name" data-ui-id="id-name" data-ui-name="ПІБ" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
 
-            <button class="fab-plus" onclick="event.stopPropagation(); toggleSheet(true)" aria-label="Дії з документом">
+            <button class="fab-plus" data-ui-id="id-fab-plus" data-ui-name="Помаранчева кнопка +" onclick="event.stopPropagation(); handleFabClick()" aria-label="Дії з документом">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2.2" stroke-linecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
@@ -1335,7 +1437,6 @@
           <span>Завантажити PDF</span>
         </div>
 
-        <!-- Оновлення документа з жовтою стрічкою на 10 секунд -->
         <div class="sheet-item" onclick="toggleSheet(false); startDocumentUpdate()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -1355,7 +1456,7 @@
       </div>
 
       <div class="full-info-scroll">
-        <div class="info-card">
+        <div class="info-card" data-ui-id="full-card-1" data-ui-name="Картка ПІБ та фото">
           <div class="info-card-name" data-bind="fullName">Філоненко<br>Ігор<br>Миколайович</div>
           <div class="info-card-role" data-bind="role">Військовозобов’язаний</div>
 
@@ -1375,7 +1476,7 @@
           </div>
         </div>
 
-        <div class="info-card">
+        <div class="info-card" data-ui-id="full-card-2" data-ui-name="Картка ТЦК та ВОС">
           <div class="info-field-block">
             <div class="info-label">ТЦК та СП:</div>
             <div class="info-value" data-bind="tck">1 відділ Харківського РТЦК та СП (Дергачі)</div>
@@ -1408,7 +1509,7 @@
           </div>
         </div>
 
-        <div class="info-card">
+        <div class="info-card" data-ui-id="full-card-3" data-ui-name="Картка контактів">
           <div class="info-field-block">
             <div class="info-label">Телефон:</div>
             <div class="info-value" data-bind="phone">+380 98 780 9397</div>
@@ -1420,7 +1521,7 @@
           </div>
         </div>
 
-        <div class="info-card">
+        <div class="info-card" data-ui-id="full-card-4" data-ui-name="Картка уточнення даних">
           <div class="verified-header">
             <span class="green-check-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1440,10 +1541,10 @@
 
     <!-- ==================== ЕКРАН 5: МЕНЮ ==================== -->
     <section id="screen-menu" class="screen">
-      <div class="page-title">Меню</div>
+      <div class="page-title" data-ui-id="menu-title" data-ui-name="Заголовок Меню">Меню</div>
       <div class="app-version">Версія 2.6.0</div>
 
-      <div class="menu-card">
+      <div class="menu-card" data-ui-id="menu-card-1" data-ui-name="Картка сесій">
         <div class="menu-row" onclick="showToast('Активні сесії: 1 пристрій')">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
@@ -1470,7 +1571,7 @@
         </div>
       </div>
 
-      <div class="menu-card">
+      <div class="menu-card" data-ui-id="menu-card-2" data-ui-name="Картка підтримки">
         <div class="menu-row" onclick="showToast('Питання та відповіді')">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8">
@@ -1512,7 +1613,7 @@
         </div>
       </div>
 
-      <div class="menu-card">
+      <div class="menu-card" data-ui-id="menu-card-3" data-ui-name="Картка QR">
         <div class="menu-row" onclick="showToast('Камера для сканування QR')">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8" stroke-linecap="round">
@@ -1524,7 +1625,7 @@
         </div>
       </div>
 
-      <button class="logout-btn" onclick="goToScreen('pin')">Вийти</button>
+      <button class="logout-btn" data-ui-id="menu-logout-btn" data-ui-name="Кнопка Вийти" onclick="goToScreen('pin')">Вийти</button>
 
       <div class="privacy-link" onclick="showToast('Повідомлення про обробку персональних даних')">
         Повідомлення про обробку<br>персональних даних
@@ -1559,7 +1660,7 @@
           <span>Більше не показувати</span>
         </div>
 
-        <button class="primary-orange-btn" onclick="showToast('Перехід до переліку вакансій')">
+        <button class="primary-orange-btn" data-ui-id="vac-start-btn" data-ui-name="Кнопка Почати" onclick="showToast('Перехід до переліку вакансій')">
           Почати
         </button>
       </div>
@@ -1606,7 +1707,7 @@
     </section>
 
     <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ ЗАСТОСУНКУ ==================== -->
-    <nav id="bottom-tabs" class="bottom-tabs">
+    <nav id="bottom-tabs" class="bottom-tabs" data-ui-id="bottom-tabs" data-ui-name="Нижня панель вкладок">
       <button class="tab-btn active" data-target="id" onclick="goToScreen('id')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
@@ -1648,7 +1749,7 @@
     <div id="editor-modal" class="editor-modal">
       <div class="editor-box">
         <div class="editor-header">
-          <h3>Редактор даних та фото</h3>
+          <h3>Редактор даних, фото та макету</h3>
           <button class="editor-close" onclick="closeEditor()">✕</button>
         </div>
 
@@ -1665,7 +1766,7 @@
 
           <!-- Фото заставки перед PIN (load.jpg) -->
           <div class="editor-photo-row">
-            <div class="editor-photo-preview" id="editor-splash-preview"><img src="load.jpg" alt="load.jpg" onerror="this.style.display='none'"></div>
+            <div class="editor-photo-preview" id="editor-splash-preview"></div>
             <div>
               <label for="splash-upload-input" class="upload-label-btn">Фото заставки (перед PIN)</label>
               <input type="file" id="splash-upload-input" accept="image/*" style="display: none;" onchange="handleSplashUpload(event)">
@@ -1673,6 +1774,22 @@
             </div>
           </div>
 
+          <!-- Загальний масштаб всього інтерфейсу -->
+          <div class="scale-control-box">
+            <div class="scale-control-header">
+              <span>Загальний масштаб інтерфейсу</span>
+              <span id="global-scale-label">100%</span>
+            </div>
+            <input type="range" id="inp-globalScale" min="75" max="125" value="100" oninput="handleGlobalScaleChange(this.value)">
+          </div>
+
+          <!-- Режим перетягування та розміру кнопок/блоків прямо в інтерфейсі -->
+          <div class="inline-edit-toggle" onclick="startLayoutEditMode()">
+            <span>Рухати кнопки та змінювати їх розмір на екрані</span>
+            <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Відкрити</span>
+          </div>
+
+          <!-- Режим редагування тексту кліком -->
           <div class="inline-edit-toggle" onclick="toggleInlineEdit()">
             <span>Редагувати будь-який текст кліком по екрану</span>
             <input type="checkbox" id="inline-edit-checkbox" style="pointer-events: none; width: 16px; height: 16px;">
@@ -1775,6 +1892,22 @@
     </div>
   </div>
 
+  <!-- ==================== ПЛАВАЮЧА ПАНЕЛЬ РУХУ ТА РОЗМІРУ ==================== -->
+  <div id="layout-toolbar" class="layout-toolbar">
+    <div class="layout-toolbar-top">
+      <span>Елемент: <strong id="selected-el-label">Натисніть на кнопку</strong></span>
+      <span id="selected-el-size">100%</span>
+    </div>
+    <div class="layout-slider-row">
+      <span>Розмір</span>
+      <input type="range" id="el-size-slider" min="50" max="180" value="100" oninput="updateSelectedElementSize(this.value)">
+    </div>
+    <div class="layout-toolbar-actions">
+      <button class="lt-btn lt-btn-reset" onclick="resetSelectedElementLayout()">Скинути елемент</button>
+      <button class="lt-btn lt-btn-done" onclick="stopLayoutEditMode()">Готово</button>
+    </div>
+  </div>
+
   <script>
     const defaultData = {
       topAlert: '',
@@ -1795,16 +1928,21 @@
       verifiedStatus: 'Дані уточнено вчасно',
       verifiedDate: '20.05.2024',
       photoDataUrl: '',
-      splashDataUrl: ''
+      splashDataUrl: '',
+      globalScale: 100,
+      customLayouts: {}
     };
 
-    let appData = { ...defaultData };
+    const CACHE_BUSTER = Date.now();
+    let appData = { ...defaultData, customLayouts: {} };
     let currentScreen = 'splash';
     let pinBuffer = '';
     let autoTimer = null;
     let updateDocTimer = null;
     let isUpdatingDoc = false;
     let inlineEditEnabled = false;
+    let layoutEditMode = false;
+    let selectedUiId = null;
     let githubImageAvailable = false;
 
     let copyTapCount = 0;
@@ -1874,6 +2012,37 @@
       }, 10000);
     }
 
+    function applyCustomLayouts() {
+      const appShell = document.getElementById('app-shell');
+      const gScale = Number(appData.globalScale) || 100;
+      if (appShell) {
+        appShell.style.zoom = (gScale / 100);
+      }
+
+      const layouts = appData.customLayouts || {};
+      document.querySelectorAll('[data-ui-id]').forEach(el => {
+        const id = el.dataset.uiId;
+        const cfg = layouts[id];
+
+        if (cfg && (cfg.x !== 0 || cfg.y !== 0 || (cfg.scale && cfg.scale !== 100))) {
+          const x = cfg.x || 0;
+          const y = cfg.y || 0;
+          const sc = (cfg.scale || 100) / 100;
+          el.style.transform = `translate(${x}px, ${y}px) scale(${sc})`;
+        } else {
+          el.style.transform = '';
+        }
+      });
+    }
+
+    function handleGlobalScaleChange(val) {
+      appData.globalScale = Number(val);
+      const lbl = document.getElementById('global-scale-label');
+      if (lbl) lbl.textContent = appData.globalScale + '%';
+      applyCustomLayouts();
+      persistData();
+    }
+
     function applyDataToUI() {
       document.querySelectorAll('[data-bind]').forEach(el => {
         const key = el.dataset.bind;
@@ -1903,21 +2072,19 @@
         tickerEl.textContent = `${cleanTicker} • ${cleanTicker} • ${cleanTicker} • `;
       }
 
-      // Фото документа
       document.querySelectorAll('.user-photo-container').forEach(box => {
         if (appData.photoDataUrl) {
           box.innerHTML = `<img src="${appData.photoDataUrl}" alt="Фото">`;
         } else if (githubImageAvailable) {
-          box.innerHTML = `<img src="image.jpg" alt="Фото">`;
+          box.innerHTML = `<img src="image.jpg?v=${CACHE_BUSTER}" alt="Фото">`;
         } else {
           box.innerHTML = defaultPhotoSVG();
         }
       });
 
-      // Тільки фото для заставки перед PIN (завантажене або load.jpg з GitHub)
       const splashImg = document.getElementById('splash-custom-img');
       const splashPreview = document.getElementById('editor-splash-preview');
-      const activeSplashSrc = appData.splashDataUrl || 'load.jpg';
+      const activeSplashSrc = appData.splashDataUrl || `load.jpg?v=${CACHE_BUSTER}`;
 
       if (splashImg) {
         splashImg.style.display = 'block';
@@ -1926,24 +2093,27 @@
       if (splashPreview) {
         splashPreview.innerHTML = `<img src="${activeSplashSrc}" alt="Заставка" onerror="this.style.display='none'">`;
       }
+
+      applyCustomLayouts();
     }
 
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v8');
+        const raw = localStorage.getItem('rezerv_ui_data_v10');
         if (raw) {
-          appData = { ...defaultData, ...JSON.parse(raw) };
+          const parsed = JSON.parse(raw);
+          appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
           hasLocal = true;
         }
       } catch (e) {}
 
       if (!hasLocal) {
         try {
-          const res = await fetch('settings.json', { cache: 'no-store' });
+          const res = await fetch('settings.json?v=' + CACHE_BUSTER, { cache: 'no-store' });
           if (res.ok) {
             const remoteData = await res.json();
-            appData = { ...defaultData, ...remoteData };
+            appData = { ...defaultData, ...remoteData, customLayouts: remoteData.customLayouts || {} };
           }
         } catch (e) {}
       }
@@ -1957,14 +2127,14 @@
         githubImageAvailable = false;
         applyDataToUI();
       };
-      imgProbe.src = 'image.jpg?v=' + Date.now();
+      imgProbe.src = 'image.jpg?v=' + CACHE_BUSTER;
 
       applyDataToUI();
     }
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v8', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v10', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2030,11 +2200,17 @@
     }
 
     function handleCardClick() {
-      if (inlineEditEnabled) return;
+      if (inlineEditEnabled || layoutEditMode) return;
+      toggleSheet(true);
+    }
+
+    function handleFabClick() {
+      if (layoutEditMode) return;
       toggleSheet(true);
     }
 
     function pressDigit(num) {
+      if (layoutEditMode) return;
       if (pinBuffer.length >= 4) return;
       pinBuffer += String(num);
       updatePinDots();
@@ -2045,6 +2221,7 @@
     }
 
     function deleteDigit() {
+      if (layoutEditMode) return;
       pinBuffer = pinBuffer.slice(0, -1);
       updatePinDots();
     }
@@ -2076,6 +2253,111 @@
       }, 1800);
     }
 
+    /* ==================== РЕЖИМ ПЕРЕМІЩЕННЯ ТА ЗМІНИ РОЗМІРУ ЕЛЕМЕНТІВ ==================== */
+    function startLayoutEditMode() {
+      closeEditor();
+      layoutEditMode = true;
+      document.body.classList.add('layout-edit-mode');
+      document.getElementById('layout-toolbar').classList.add('open');
+      showToast('Тягніть будь-який елемент пальцем');
+    }
+
+    function stopLayoutEditMode() {
+      layoutEditMode = false;
+      selectedUiId = null;
+      document.body.classList.remove('layout-edit-mode');
+      document.getElementById('layout-toolbar').classList.remove('open');
+      document.querySelectorAll('.layout-selected').forEach(el => el.classList.remove('layout-selected'));
+      persistData();
+      showToast('Позиції та розміри збережено');
+    }
+
+    function selectLayoutElement(el) {
+      document.querySelectorAll('.layout-selected').forEach(item => item.classList.remove('layout-selected'));
+      el.classList.add('layout-selected');
+      selectedUiId = el.dataset.uiId;
+
+      if (!appData.customLayouts[selectedUiId]) {
+        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 100 };
+      }
+
+      const currentScale = appData.customLayouts[selectedUiId].scale || 100;
+      document.getElementById('selected-el-label').textContent = el.dataset.uiName || selectedUiId;
+      document.getElementById('selected-el-size').textContent = currentScale + '%';
+      document.getElementById('el-size-slider').value = currentScale;
+    }
+
+    function updateSelectedElementSize(val) {
+      if (!selectedUiId) {
+        showToast('Спочатку натисніть на елемент');
+        return;
+      }
+      if (!appData.customLayouts[selectedUiId]) {
+        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 100 };
+      }
+      appData.customLayouts[selectedUiId].scale = Number(val);
+      document.getElementById('selected-el-size').textContent = val + '%';
+      applyCustomLayouts();
+      persistData();
+    }
+
+    function resetSelectedElementLayout() {
+      if (!selectedUiId) return;
+      delete appData.customLayouts[selectedUiId];
+      document.getElementById('selected-el-size').textContent = '100%';
+      document.getElementById('el-size-slider').value = 100;
+      applyCustomLayouts();
+      persistData();
+      showToast('Елемент повернуто на місце');
+    }
+
+    let dragState = null;
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!layoutEditMode) return;
+      if (e.target.closest('#layout-toolbar')) return;
+
+      const targetEl = e.target.closest('[data-ui-id]');
+      if (!targetEl) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      selectLayoutElement(targetEl);
+
+      const id = targetEl.dataset.uiId;
+      const cfg = appData.customLayouts[id] || { x: 0, y: 0, scale: 100 };
+      const gScale = (Number(appData.globalScale) || 100) / 100;
+
+      dragState = {
+        id: id,
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: cfg.x || 0,
+        origY: cfg.y || 0,
+        gScale: gScale
+      };
+    }, true);
+
+    document.addEventListener('pointermove', (e) => {
+      if (!layoutEditMode || !dragState) return;
+      e.preventDefault();
+
+      const dx = (e.clientX - dragState.startX) / dragState.gScale;
+      const dy = (e.clientY - dragState.startY) / dragState.gScale;
+
+      appData.customLayouts[dragState.id].x = Math.round(dragState.origX + dx);
+      appData.customLayouts[dragState.id].y = Math.round(dragState.origY + dy);
+      applyCustomLayouts();
+    }, { passive: false });
+
+    document.addEventListener('pointerup', () => {
+      if (dragState) {
+        dragState = null;
+        persistData();
+      }
+    });
+
     /* ==================== ЛОГІКА 4 НАТИСКАНЬ І РЕДАКТОРА ==================== */
     function handleCopyDeviceClick() {
       copyTapCount++;
@@ -2095,10 +2377,13 @@
 
     function openEditor() {
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl' || key === 'splashDataUrl') return;
+        if (key === 'photoDataUrl' || key === 'splashDataUrl' || key === 'customLayouts' || key === 'globalScale') return;
         const input = document.getElementById('inp-' + key);
         if (input) input.value = appData[key];
       });
+      const gScale = appData.globalScale || 100;
+      document.getElementById('inp-globalScale').value = gScale;
+      document.getElementById('global-scale-label').textContent = gScale + '%';
       document.getElementById('inline-edit-checkbox').checked = inlineEditEnabled;
       document.getElementById('editor-modal').classList.add('open');
     }
@@ -2135,7 +2420,7 @@
 
     function saveEditorFields() {
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl' || key === 'splashDataUrl') return;
+        if (key === 'photoDataUrl' || key === 'splashDataUrl' || key === 'customLayouts' || key === 'globalScale') return;
         const input = document.getElementById('inp-' + key);
         if (input) appData[key] = input.value;
       });
@@ -2146,11 +2431,11 @@
     }
 
     function resetAppData() {
-      appData = { ...defaultData };
-      localStorage.removeItem('rezerv_ui_data_v8');
+      appData = { ...defaultData, customLayouts: {} };
+      localStorage.removeItem('rezerv_ui_data_v10');
       applyDataToUI();
       openEditor();
-      showToast('Дані скинуто до початкових');
+      showToast('Дані та позиції скинуто');
     }
 
     function toggleInlineEdit() {
