@@ -10,152 +10,115 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
+  <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.png" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
   <script>
-    let deferredInstallPrompt = null;
+    let deferredPrompt = null;
 
     function isStandaloneMode() {
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
-    function syncStandaloneClass() {
+    function updateInstallButtonState() {
+      const installCard = document.getElementById('menu-card-install');
       const standalone = isStandaloneMode();
       document.documentElement.classList.toggle('is-standalone', standalone);
       document.body.classList.toggle('is-standalone', standalone);
-      const installCard = document.getElementById('menu-card-install');
       if (installCard) {
-        installCard.style.display = standalone ? 'none' : '';
+        installCard.hidden = standalone || !deferredPrompt;
+        installCard.style.display = (standalone || !deferredPrompt) ? 'none' : '';
       }
     }
 
-    window.__isStandaloneMode = isStandaloneMode;
-    window.__syncStandaloneClass = syncStandaloneClass;
-
-    function createPwaIcon(size) {
+    function createIcon(size) {
       const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = canvas.height = size;
 
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#1E1E1A';
       ctx.fillRect(0, 0, size, size);
 
       ctx.fillStyle = '#F38A00';
-      ctx.font = `bold ${Math.round(size * 0.52)}px Arial, sans-serif`;
+      ctx.font = `bold ${Math.round(size / 2)}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Р', size / 2, size / 2 + Math.round(size * 0.02));
+      ctx.fillText('Р', size / 2, size / 2);
 
       return canvas.toDataURL('image/png');
     }
 
-    (function() {
-      syncStandaloneClass();
-      window.addEventListener('DOMContentLoaded', syncStandaloneClass);
+    const icoUrl = new URL('app.ico', location.href).href;
+    const pngUrl = new URL('app.png', location.href).href;
+    const fallbackIcon = createIcon(192);
 
-      if (window.matchMedia) {
-        const mq = window.matchMedia('(display-mode: standalone)');
-        if (mq.addEventListener) {
-          mq.addEventListener('change', syncStandaloneClass);
-        } else if (mq.addListener) {
-          mq.addListener(syncStandaloneClass);
+    const manifest = {
+      name: 'Резерв+',
+      short_name: 'Резерв+',
+      id: location.pathname,
+      start_url: location.origin + location.pathname,
+      scope: new URL('./', location.href).href,
+      display: 'standalone',
+      background_color: '#1E1E1A',
+      theme_color: '#1E1E1A',
+      icons: [
+        {
+          src: icoUrl,
+          sizes: '192x192',
+          type: 'image/x-icon'
+        },
+        {
+          src: icoUrl,
+          sizes: '512x512',
+          type: 'image/x-icon'
+        },
+        {
+          src: fallbackIcon,
+          sizes: '192x192',
+          type: 'image/png'
         }
-      }
+      ]
+    };
 
-      const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
-      const appleIcon = document.getElementById('apple-touch-icon');
-      if (appleIcon) appleIcon.href = rawIcoUrl;
-      const favIcon = document.getElementById('favicon-icon');
-      if (favIcon) favIcon.href = rawIcoUrl;
-
-      const scopeUrl = new URL('./', window.location.href).href;
-      const startUrl = new URL(location.pathname + location.search, location.origin).href;
-      const icon192 = createPwaIcon(192);
-      const icon512 = createPwaIcon(512);
-
-      if (appleIcon) appleIcon.href = icon192;
-
-      const manifest = {
-        name: 'Резерв+',
-        short_name: 'Резерв+',
-        id: startUrl,
-        start_url: startUrl,
-        scope: scopeUrl,
-        display: 'standalone',
-        display_override: ['standalone'],
-        background_color: '#1E1E1A',
-        theme_color: '#1E1E1A',
-        icons: [
-          {
-            src: icon192,
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: icon512,
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      };
-
-      const manifestLink = document.createElement('link');
-      manifestLink.id = 'pwa-manifest';
-      manifestLink.rel = 'manifest';
-      manifestLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
-      document.head.appendChild(manifestLink);
-
-      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-        window.addEventListener('load', () => {
-          const swCode = `
-            self.addEventListener('install', (event) => {
-              self.skipWaiting();
-            });
-            self.addEventListener('activate', (event) => {
-              event.waitUntil(self.clients.claim());
-            });
-            self.addEventListener('fetch', (event) => {
-              event.respondWith(fetch(event.request));
-            });
-          `;
-          const swBlob = new Blob([swCode], { type: 'application/javascript' });
-          const swUrl = URL.createObjectURL(swBlob);
-          navigator.serviceWorker.register(swUrl, { scope: './' })
-            .then(() => URL.revokeObjectURL(swUrl))
-            .catch(() => URL.revokeObjectURL(swUrl));
-        });
-      }
-    })();
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = 'data:application/manifest+json,' +
+      encodeURIComponent(JSON.stringify(manifest));
+    document.head.appendChild(manifestLink);
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      deferredInstallPrompt = e;
-      syncStandaloneClass();
+      deferredPrompt = e;
+      updateInstallButtonState();
     });
 
     async function installApp() {
-      if (isStandaloneMode()) {
-        syncStandaloneClass();
-        return;
-      }
+      if (!deferredPrompt) return;
 
-      if (!deferredInstallPrompt) return;
+      const prompt = deferredPrompt;
+      deferredPrompt = null;
 
-      const promptEvent = deferredInstallPrompt;
-      deferredInstallPrompt = null;
+      updateInstallButtonState();
 
-      await promptEvent.prompt();
-      await promptEvent.userChoice.catch(() => null);
-      syncStandaloneClass();
+      await prompt.prompt();
     }
 
     window.addEventListener('appinstalled', () => {
-      deferredInstallPrompt = null;
-      syncStandaloneClass();
+      deferredPrompt = null;
+      updateInstallButtonState();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const v = Date.now();
+      const appleIcon = document.getElementById('apple-touch-icon');
+      if (appleIcon) {
+        appleIcon.href = `${pngUrl}?v=${v}`;
+      }
+      const favIcon = document.getElementById('favicon-icon');
+      if (favIcon) {
+        favIcon.href = `${icoUrl}?v=${v}`;
+      }
+      updateInstallButtonState();
     });
   </script>
 
@@ -1944,7 +1907,7 @@
   <div id="app-shell" class="app-shell">
     <div id="toast" class="toast">Скопійовано</div>
 
-    <!-- ==================== ЕКРАН 1: SPLASH ==================== -->
+    <!-- ==================== ЕКРАН 1: SPLASH (ЛИШЕ load.jpg) ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
       <img id="splash-custom-img" class="splash-custom-img" alt="">
     </section>
@@ -2226,7 +2189,7 @@
       <div class="page-title" data-ui-id="menu-title" data-ui-name="Заголовок Меню">Меню</div>
       <div class="app-version" data-ui-id="menu-version" data-ui-name="Версія застосунку">Версія 2.6.0</div>
 
-      <div class="menu-card" id="menu-card-install" data-ui-id="menu-card-install" data-ui-name="Картка встановлення додатка">
+      <div class="menu-card" id="menu-card-install" data-ui-id="menu-card-install" data-ui-name="Картка встановлення додатка" hidden>
         <div class="menu-row" onclick="installApp()">
           <div class="menu-row-left">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181815" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -3048,7 +3011,7 @@
     }
 
     function applyDataToUI() {
-      syncStandaloneClass();
+      updateInstallButtonState();
       applyFontSettings();
       applyElementCaptions();
 
