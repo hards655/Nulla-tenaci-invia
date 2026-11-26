@@ -31,26 +31,8 @@
       }
     }
 
-    function createIcon(size) {
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = size;
-
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#1E1E1A';
-      ctx.fillRect(0, 0, size, size);
-
-      ctx.fillStyle = '#F38A00';
-      ctx.font = `bold ${Math.round(size / 2)}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Р', size / 2, size / 2);
-
-      return canvas.toDataURL('image/png');
-    }
-
     const icoUrl = new URL('app.ico', location.href).href;
     const pngUrl = new URL('app.png', location.href).href;
-    const fallbackIcon = createIcon(192);
 
     const manifest = {
       name: 'Резерв+',
@@ -63,18 +45,13 @@
       theme_color: '#1E1E1A',
       icons: [
         {
-          src: icoUrl,
+          src: pngUrl,
           sizes: '192x192',
-          type: 'image/x-icon'
+          type: 'image/png'
         },
         {
-          src: icoUrl,
+          src: pngUrl,
           sizes: '512x512',
-          type: 'image/x-icon'
-        },
-        {
-          src: fallbackIcon,
-          sizes: '192x192',
           type: 'image/png'
         }
       ]
@@ -174,11 +151,6 @@
       --success-green: #4C8C4A;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    html.is-standalone,
-    body.is-standalone {
-      --safe-bottom: 0px;
     }
 
     * {
@@ -505,20 +477,10 @@
       will-change: transform, opacity;
     }
 
-    html.is-standalone .screen {
-      padding-bottom: 64px;
-    }
-
     #screen-splash,
     #screen-pin,
     #screen-full-info {
       padding-bottom: var(--safe-bottom);
-    }
-
-    html.is-standalone #screen-splash,
-    html.is-standalone #screen-pin,
-    html.is-standalone #screen-full-info {
-      padding-bottom: 0;
     }
 
     .screen.active {
@@ -549,10 +511,6 @@
     #screen-pin {
       padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
       justify-content: space-between;
-    }
-
-    html.is-standalone #screen-pin {
-      padding-bottom: 24px;
     }
 
     .pin-header {
@@ -1005,10 +963,6 @@
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
     }
 
-    html.is-standalone .bottom-sheet {
-      bottom: 64px;
-    }
-
     .bottom-sheet.open {
       transform: translateY(0);
       opacity: 1;
@@ -1062,11 +1016,6 @@
       padding: var(--safe-top) 16px var(--safe-bottom);
       display: none;
       flex-direction: column;
-    }
-
-    html.is-standalone #screen-full-info {
-      padding-top: 0;
-      padding-bottom: 0;
     }
 
     #screen-full-info.active {
@@ -1210,10 +1159,6 @@
       overflow-y: auto;
     }
 
-    html.is-standalone #screen-menu {
-      padding-top: 16px;
-    }
-
     .page-title {
       font-size: 26px;
       font-weight: 500;
@@ -1300,11 +1245,6 @@
     #screen-vacancies {
       padding: calc(var(--safe-top) + 12px) 22px calc(80px + var(--safe-bottom));
       justify-content: space-between;
-    }
-
-    html.is-standalone #screen-vacancies {
-      padding-top: 12px;
-      padding-bottom: 76px;
     }
 
     .vac-scroll-area {
@@ -1402,10 +1342,6 @@
       overflow-y: auto;
     }
 
-    html.is-standalone #screen-services {
-      padding-top: 14px;
-    }
-
     #screen-services .page-title {
       margin-bottom: 14px;
     }
@@ -1438,18 +1374,13 @@
       bottom: 0;
       width: 100%;
       background-color: #FFFFFF;
-      box-shadow: 0 36px 0 36px #FFFFFF;
+      box-shadow: 0 42px 0 42px #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 8px 4px calc(12px + var(--safe-bottom));
+      padding: 8px 4px calc(18px + var(--safe-bottom));
       z-index: 60;
       border: none;
-    }
-
-    html.is-standalone .bottom-tabs {
-      box-shadow: none;
-      padding: 8px 4px 8px;
     }
 
     @media (min-width: 520px) {
@@ -1459,10 +1390,7 @@
         right: 0;
         bottom: 0;
         width: 100%;
-        padding-bottom: 12px;
-      }
-      html.is-standalone .bottom-tabs {
-        padding-bottom: 8px;
+        padding-bottom: 18px;
       }
     }
 
@@ -1909,7 +1837,7 @@
 
     <!-- ==================== ЕКРАН 1: SPLASH (ЛИШЕ load.jpg) ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
-      <img id="splash-custom-img" class="splash-custom-img" alt="">
+      <img id="splash-custom-img" class="splash-custom-img" src="load.jpg" alt="">
     </section>
 
     <!-- ==================== ЕКРАН 2: PIN CODE ==================== -->
@@ -3198,7 +3126,6 @@
       const appShell = document.getElementById('app-shell');
       const bottomTabs = document.getElementById('bottom-tabs');
       const metaTheme = document.getElementById('meta-theme-color');
-      const standalone = isStandaloneMode();
 
       if (name === 'splash') {
         appShell.style.backgroundColor = '#1E1E1A';
@@ -3223,7 +3150,7 @@
         bottomTabs.classList.remove('visible');
       } else {
         appShell.style.backgroundColor = '#DDD8C4';
-        const navBg = standalone ? '#DDD8C4' : '#FFFFFF';
+        const navBg = '#FFFFFF';
         document.documentElement.style.backgroundColor = navBg;
         document.body.style.backgroundColor = navBg;
         if (metaTheme) metaTheme.setAttribute('content', navBg);
