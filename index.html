@@ -10,43 +10,73 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <!-- Іконка з файлу app.ico для браузера та головного екрану -->
-  <link rel="icon" href="app.ico" sizes="any" />
-  <link rel="shortcut icon" href="app.ico" />
-  <link rel="apple-touch-icon" href="app.ico" />
+  <!-- Иконка app.ico только для значка приложения -->
+  <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
+  <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
-  <!-- Динамічний Manifest з абсолютним посиланням на app.ico -->
+  <!-- Генерация Manifest и конвертация app.ico в PNG для iOS Safari и Android -->
   <script>
     (function() {
-      const iconUrl = new URL('app.ico', window.location.href).href;
       const startUrl = new URL('.', window.location.href).href;
-      const manifest = {
-        name: "Резерв+",
-        short_name: "Резерв+",
-        start_url: startUrl,
-        display: "standalone",
-        orientation: "portrait",
-        background_color: "#1E1E1A",
-        theme_color: "#DDD8C4",
-        icons: [
-          {
-            src: iconUrl,
-            sizes: "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
-            type: "image/x-icon",
-            purpose: "any maskable"
-          }
-        ]
+      const rawIcoUrl = new URL('app.ico', window.location.href).href;
+
+      function attachManifest(iconSrc, iconType) {
+        const oldManifest = document.getElementById('dynamic-manifest');
+        if (oldManifest) oldManifest.remove();
+
+        const manifest = {
+          name: "Резерв+",
+          short_name: "Резерв+",
+          start_url: startUrl,
+          scope: startUrl,
+          display: "standalone",
+          orientation: "portrait",
+          background_color: "#1E1E1A",
+          theme_color: "#DDD8C4",
+          icons: [
+            {
+              src: iconSrc,
+              sizes: iconType === "image/png" ? "512x512" : "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
+              type: iconType,
+              purpose: "any"
+            }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        const link = document.createElement('link');
+        link.id = 'dynamic-manifest';
+        link.rel = 'manifest';
+        link.href = URL.createObjectURL(blob);
+        document.head.appendChild(link);
+      }
+
+      // Сразу подключаем app.ico
+      attachManifest(rawIcoUrl, 'image/x-icon');
+
+      // Конвертируем app.ico в PNG 512x512 в фоне, чтобы iOS Safari гарантированно поставил иконку на рабочий стол
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 512;
+          canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 512, 512);
+          const pngDataUrl = canvas.toDataURL('image/png');
+
+          const appleIcon = document.getElementById('apple-touch-icon');
+          if (appleIcon) appleIcon.href = pngDataUrl;
+
+          attachManifest(pngDataUrl, 'image/png');
+        } catch (e) {}
       };
-      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-      const link = document.createElement('link');
-      link.rel = 'manifest';
-      link.href = URL.createObjectURL(blob);
-      document.head.appendChild(link);
+      img.src = rawIcoUrl;
     })();
   </script>
 
   <style>
-    /* Підключення локальних шрифтів e-Ukraine */
+    /* Подключение локальных шрифтов e-Ukraine */
     @font-face {
       font-family: 'e-Ukraine';
       src: url('e_ukraine_light.otf') format('opentype');
@@ -162,14 +192,25 @@
       display: flex;
     }
 
-    /* ==================== ЕКРАН 1: SPLASH ==================== */
+    /* ==================== ЭКРАН 1: SPLASH (С ПОДДЕРЖКОЙ load.jpg) ==================== */
     #screen-splash {
       background-color: var(--bg-dark);
       justify-content: center;
       align-items: center;
       text-align: center;
       cursor: pointer;
-      padding-bottom: var(--safe-bottom);
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .splash-custom-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 2;
     }
 
     .splash-logo {
@@ -178,6 +219,7 @@
       align-items: center;
       gap: 18px;
       transform: translateY(-2%);
+      z-index: 1;
     }
 
     .splash-title {
@@ -188,7 +230,7 @@
       letter-spacing: -0.02em;
     }
 
-    /* ==================== ЕКРАН 2: PIN CODE ==================== */
+    /* ==================== ЭКРАН 2: PIN CODE ==================== */
     #screen-pin {
       padding: calc(var(--safe-top) + 22px) 24px calc(var(--safe-bottom) + 24px);
       justify-content: space-between;
@@ -264,7 +306,7 @@
       cursor: pointer;
     }
 
-    /* ==================== ВЕРХНІЙ РЯДОК (СПОВІЩЕННЯ) ==================== */
+    /* ==================== ВЕРХНЯЯ СТРОКА (СПОВІЩЕННЯ) ==================== */
     .top-action-row {
       display: flex;
       justify-content: flex-end;
@@ -287,7 +329,7 @@
       cursor: pointer;
     }
 
-    /* ==================== ЕКРАН 3: LOADING CARD ==================== */
+    /* ==================== ЭКРАН 3: LOADING CARD ==================== */
     .card-wrapper {
       flex: 1;
       padding: 0 22px 42px;
@@ -326,7 +368,7 @@
       color: var(--text-main);
     }
 
-    /* ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== */
+    /* ==================== ЭКРАН 4: РЕЗЕРВ ID ==================== */
     .id-card {
       flex: 1;
       background-color: var(--bg-card-beige);
@@ -428,7 +470,6 @@
       color: var(--text-main);
     }
 
-    /* Біжуча стрічка */
     .ticker-strip {
       background-color: var(--ticker-brown);
       color: #FFFFFF;
@@ -566,7 +607,7 @@
       opacity: 0.65;
     }
 
-    /* ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
+    /* ==================== ЭКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== */
     #screen-full-info {
       background-color: var(--bg-beige);
       padding: var(--safe-top) 16px var(--safe-bottom);
@@ -1007,6 +1048,12 @@
       background: #DDD8C4;
       overflow: hidden;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #5C594E;
+      text-align: center;
     }
 
     .editor-photo-preview img {
@@ -1148,9 +1195,10 @@
   <div id="app-shell" class="app-shell">
     <div id="toast" class="toast">Скопійовано</div>
 
-    <!-- ==================== ЕКРАН 1: SPLASH ==================== -->
+    <!-- ==================== ЕКРАН 1: SPLASH (ПІДТЯГУЄ load.jpg ЯКЩО Є) ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
-      <div class="splash-logo">
+      <img id="splash-custom-img" class="splash-custom-img" alt="Заставка">
+      <div id="splash-default-logo" class="splash-logo">
         <svg width="54" height="62" viewBox="0 0 60 68" fill="none">
           <path d="M5 4H55V33C55 50 30 64 30 64C30 64 5 50 5 33V4Z" fill="#EAE6D7"/>
           <path d="M13 13H18.5V35C18.5 39.2 21.5 41.5 25.5 41.5H27.2V19.5L30 13.5L32.8 19.5V41.5H34.5C38.5 41.5 41.5 39.2 41.5 35V13H47V35.5C47 42.5 41.8 46.8 34.5 46.8H32.8V50.5L30 55L27.2 50.5V46.8H25.5C18.2 46.8 13 42.5 13 35.5V13Z" fill="#1E1E1A"/>
@@ -1629,7 +1677,7 @@
       </button>
     </nav>
 
-    <!-- ==================== ПРИХОВАНЕ ВІКНО РЕДАКТОРА ==================== -->
+    <!-- ==================== ПРИХОВАНЕ МОДАЛЬНЕ ВІКНО РЕДАКТОРА ==================== -->
     <div id="editor-modal" class="editor-modal">
       <div class="editor-box">
         <div class="editor-header">
@@ -1638,12 +1686,23 @@
         </div>
 
         <div class="editor-body">
+          <!-- Фото профілю -->
           <div class="editor-photo-row">
             <div class="editor-photo-preview user-photo-container"></div>
             <div>
-              <label for="photo-upload-input" class="upload-label-btn">Завантажити фото</label>
+              <label for="photo-upload-input" class="upload-label-btn">Фото документа</label>
               <input type="file" id="photo-upload-input" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
               <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">Зберігається локально або береться з image.jpg</div>
+            </div>
+          </div>
+
+          <!-- Фото заставки перед PIN (load.jpg) -->
+          <div class="editor-photo-row">
+            <div class="editor-photo-preview" id="editor-splash-preview">Екран<br>запуску</div>
+            <div>
+              <label for="splash-upload-input" class="upload-label-btn">Фото заставки (перед PIN)</label>
+              <input type="file" id="splash-upload-input" accept="image/*" style="display: none;" onchange="handleSplashUpload(event)">
+              <div style="font-size: 11px; color: #6C695E; margin-top: 4px;">Або покладіть файл load.jpg в корінь GitHub</div>
             </div>
           </div>
 
@@ -1768,7 +1827,8 @@
       address: 'Україна, Харківська, Мала Данилівка, Академічна, б. 4, кв. 183',
       verifiedStatus: 'Дані уточнено вчасно',
       verifiedDate: '20.05.2024',
-      photoDataUrl: ''
+      photoDataUrl: '',
+      splashDataUrl: ''
     };
 
     let appData = { ...defaultData };
@@ -1779,6 +1839,7 @@
     let isUpdatingDoc = false;
     let inlineEditEnabled = false;
     let githubImageAvailable = false;
+    let githubLoadImageAvailable = false;
 
     let copyTapCount = 0;
     let copyTapTimer = null;
@@ -1876,6 +1937,7 @@
         tickerEl.textContent = `${cleanTicker} • ${cleanTicker} • ${cleanTicker} • `;
       }
 
+      // Фото документа
       document.querySelectorAll('.user-photo-container').forEach(box => {
         if (appData.photoDataUrl) {
           box.innerHTML = `<img src="${appData.photoDataUrl}" alt="Фото">`;
@@ -1885,12 +1947,31 @@
           box.innerHTML = defaultPhotoSVG();
         }
       });
+
+      // Картинка заставки перед PIN (завантажена або load.jpg з GitHub)
+      const splashImg = document.getElementById('splash-custom-img');
+      const splashDefault = document.getElementById('splash-default-logo');
+      const splashPreview = document.getElementById('editor-splash-preview');
+      const activeSplashSrc = appData.splashDataUrl || (githubLoadImageAvailable ? 'load.jpg' : '');
+
+      if (splashImg && splashDefault) {
+        if (activeSplashSrc) {
+          splashImg.src = activeSplashSrc;
+          splashImg.style.display = 'block';
+          splashDefault.style.display = 'none';
+          if (splashPreview) splashPreview.innerHTML = `<img src="${activeSplashSrc}" alt="Заставка">`;
+        } else {
+          splashImg.style.display = 'none';
+          splashDefault.style.display = 'flex';
+          if (splashPreview) splashPreview.innerHTML = 'Екран<br>запуску';
+        }
+      }
     }
 
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v6');
+        const raw = localStorage.getItem('rezerv_ui_data_v7');
         if (raw) {
           appData = { ...defaultData, ...JSON.parse(raw) };
           hasLocal = true;
@@ -1907,6 +1988,7 @@
         } catch (e) {}
       }
 
+      // Проверка image.jpg (фото в документе)
       const imgProbe = new Image();
       imgProbe.onload = () => {
         githubImageAvailable = true;
@@ -1918,12 +2000,24 @@
       };
       imgProbe.src = 'image.jpg?v=' + Date.now();
 
+      // Проверка load.jpg (экран загрузки перед PIN)
+      const loadProbe = new Image();
+      loadProbe.onload = () => {
+        githubLoadImageAvailable = true;
+        applyDataToUI();
+      };
+      loadProbe.onerror = () => {
+        githubLoadImageAvailable = false;
+        applyDataToUI();
+      };
+      loadProbe.src = 'load.jpg?v=' + Date.now();
+
       applyDataToUI();
     }
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v6', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v7', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2035,7 +2129,7 @@
       }, 1800);
     }
 
-    /* ==================== ЛОГІКА 4 НАТИСКАНЬ І РЕДАКТОРА ==================== */
+    /* ==================== ЛОГИКА 4 НАЖАТИЙ И РЕДАКТОРА ==================== */
     function handleCopyDeviceClick() {
       copyTapCount++;
       clearTimeout(copyTapTimer);
@@ -2054,7 +2148,7 @@
 
     function openEditor() {
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl') return;
+        if (key === 'photoDataUrl' || key === 'splashDataUrl') return;
         const input = document.getElementById('inp-' + key);
         if (input) input.value = appData[key];
       });
@@ -2074,14 +2168,27 @@
         appData.photoDataUrl = e.target.result;
         applyDataToUI();
         persistData();
-        showToast('Фото оновлено та збережено');
+        showToast('Фото документа збережено');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleSplashUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appData.splashDataUrl = e.target.result;
+        applyDataToUI();
+        persistData();
+        showToast('Фото заставки збережено');
       };
       reader.readAsDataURL(file);
     }
 
     function saveEditorFields() {
       Object.keys(defaultData).forEach(key => {
-        if (key === 'photoDataUrl') return;
+        if (key === 'photoDataUrl' || key === 'splashDataUrl') return;
         const input = document.getElementById('inp-' + key);
         if (input) appData[key] = input.value;
       });
@@ -2093,7 +2200,7 @@
 
     function resetAppData() {
       appData = { ...defaultData };
-      localStorage.removeItem('rezerv_ui_data_v6');
+      localStorage.removeItem('rezerv_ui_data_v7');
       applyDataToUI();
       openEditor();
       showToast('Дані скинуто до початкових');
