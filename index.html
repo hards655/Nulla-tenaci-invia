@@ -10,19 +10,38 @@
   <meta name="apple-mobile-web-app-title" content="Резерв+" />
   <title>Резерв+</title>
 
-  <!-- Іконка app.ico тільки для значка застосунку -->
+  <!-- Іконка app.ico тільки для значка ярлика -->
   <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
   <link id="favicon-icon" rel="icon" href="app.ico" sizes="any" />
 
-  <!-- Генерація Manifest та конвертація app.ico в PNG для iOS Safari і Android -->
+  <!-- Генерація Manifest: на стартовий екран завантаження ставиться load.jpg, а не іконка -->
   <script>
     (function() {
       const startUrl = new URL('.', window.location.href).href;
       const rawIcoUrl = new URL('app.ico?v=' + Date.now(), window.location.href).href;
+      const rawLoadUrl = new URL('load.jpg?v=' + Date.now(), window.location.href).href;
 
-      function attachManifest(iconSrc, iconType) {
+      function attachManifest(splashIconSrc, smallIconSrc, iconType) {
         const oldManifest = document.getElementById('dynamic-manifest');
         if (oldManifest) oldManifest.remove();
+
+        const iconsList = [];
+        if (smallIconSrc) {
+          iconsList.push({
+            src: smallIconSrc,
+            sizes: "48x48",
+            type: iconType,
+            purpose: "any"
+          });
+        }
+        if (splashIconSrc) {
+          iconsList.push({
+            src: splashIconSrc,
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any"
+          });
+        }
 
         const manifest = {
           name: "Резерв+",
@@ -32,15 +51,8 @@
           display: "standalone",
           orientation: "portrait",
           background_color: "#1E1E1A",
-          theme_color: "#DDD8C4",
-          icons: [
-            {
-              src: iconSrc,
-              sizes: iconType === "image/png" ? "512x512" : "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
-              type: iconType,
-              purpose: "any"
-            }
-          ]
+          theme_color: "#1E1E1A",
+          icons: iconsList
         };
         const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
         const link = document.createElement('link');
@@ -50,26 +62,59 @@
         document.head.appendChild(link);
       }
 
-      attachManifest(rawIcoUrl, 'image/x-icon');
-
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = function() {
+      // 1. Конвертуємо app.ico у малий 48x48 PNG для значка ярлика (щоб система не розтягувала його на весь екран)
+      const icoImg = new Image();
+      icoImg.crossOrigin = 'anonymous';
+      icoImg.onload = function() {
         try {
-          const canvas = document.createElement('canvas');
-          canvas.width = 512;
-          canvas.height = 512;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, 512, 512);
-          const pngDataUrl = canvas.toDataURL('image/png');
-
+          const c = document.createElement('canvas');
+          c.width = 180;
+          c.height = 180;
+          c.getContext('2d').drawImage(icoImg, 0, 0, 180, 180);
           const appleIcon = document.getElementById('apple-touch-icon');
-          if (appleIcon) appleIcon.href = pngDataUrl;
+          if (appleIcon) appleIcon.href = c.toDataURL('image/png');
 
-          attachManifest(pngDataUrl, 'image/png');
-        } catch (e) {}
+          const cSmall = document.createElement('canvas');
+          cSmall.width = 48;
+          cSmall.height = 48;
+          cSmall.getContext('2d').drawImage(icoImg, 0, 0, 48, 48);
+          const smallPng = cSmall.toDataURL('image/png');
+
+          // 2. Підвантажуємо load.jpg як системний екран запуску (512x512)
+          const loadImg = new Image();
+          loadImg.crossOrigin = 'anonymous';
+          loadImg.onload = function() {
+            const cSplash = document.createElement('canvas');
+            cSplash.width = 512;
+            cSplash.height = 512;
+            const ctx = cSplash.getContext('2d');
+            ctx.fillStyle = '#1E1E1A';
+            ctx.fillRect(0, 0, 512, 512);
+            const scale = Math.min(512 / loadImg.width, 512 / loadImg.height);
+            const w = loadImg.width * scale;
+            const h = loadImg.height * scale;
+            ctx.drawImage(loadImg, (512 - w) / 2, (512 - h) / 2, w, h);
+            attachManifest(cSplash.toDataURL('image/png'), smallPng, 'image/png');
+          };
+          loadImg.onerror = function() {
+            // Якщо load.jpg немає — ставимо суцільний темний фон без іконки
+            const cEmpty = document.createElement('canvas');
+            cEmpty.width = 512;
+            cEmpty.height = 512;
+            const ctx = cEmpty.getContext('2d');
+            ctx.fillStyle = '#1E1E1A';
+            ctx.fillRect(0, 0, 512, 512);
+            attachManifest(cEmpty.toDataURL('image/png'), smallPng, 'image/png');
+          };
+          loadImg.src = rawLoadUrl;
+        } catch (e) {
+          attachManifest(null, rawIcoUrl, 'image/x-icon');
+        }
       };
-      img.src = rawIcoUrl;
+      icoImg.onerror = function() {
+        attachManifest(null, rawIcoUrl, 'image/x-icon');
+      };
+      icoImg.src = rawIcoUrl;
     })();
   </script>
 
@@ -146,10 +191,68 @@
     }
 
     body.layout-edit-mode [data-ui-id].layout-selected {
-      outline: 2.5px solid #F38A00 !important;
-      box-shadow: 0 0 0 4px rgba(243, 138, 0, 0.22);
+      outline: 2px solid #F38A00 !important;
+      box-shadow: 0 0 0 3px rgba(243, 138, 0, 0.18);
       z-index: 60;
     }
+
+    /* Рамка з ручками для колонтитулів (верх/низ) та звуження/розширення (ліво/право/кути) */
+    .resize-overlay-box {
+      position: fixed;
+      border: 2px solid #F38A00;
+      pointer-events: none;
+      z-index: 250;
+      display: none;
+      box-sizing: border-box;
+    }
+
+    .resize-overlay-box.visible {
+      display: block;
+    }
+
+    .resize-handle {
+      position: absolute;
+      background: #F38A00;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      pointer-events: auto;
+      touch-action: none;
+      z-index: 255;
+    }
+
+    .resize-handle.edge-n,
+    .resize-handle.edge-s {
+      width: 38px;
+      height: 12px;
+      border-radius: 999px;
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: ns-resize;
+    }
+    .resize-handle.edge-n { top: -7px; }
+    .resize-handle.edge-s { bottom: -7px; }
+
+    .resize-handle.edge-w,
+    .resize-handle.edge-e {
+      width: 12px;
+      height: 34px;
+      border-radius: 999px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: ew-resize;
+    }
+    .resize-handle.edge-w { left: -7px; }
+    .resize-handle.edge-e { right: -7px; }
+
+    .resize-handle.corner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+    .resize-handle.corner-nw { top: -8px; left: -8px; cursor: nwse-resize; }
+    .resize-handle.corner-ne { top: -8px; right: -8px; cursor: nesw-resize; }
+    .resize-handle.corner-sw { bottom: -8px; left: -8px; cursor: nesw-resize; }
+    .resize-handle.corner-se { bottom: -8px; right: -8px; cursor: nwse-resize; }
 
     html, body {
       width: 100%;
@@ -201,7 +304,7 @@
       display: flex;
     }
 
-    /* ==================== ЕКРАН 1: SPLASH (ТІЛЬКИ ФОТО load.jpg) ==================== */
+    /* ==================== ЕКРАН 1: SPLASH ==================== */
     #screen-splash {
       background-color: var(--bg-dark);
       cursor: pointer;
@@ -308,6 +411,7 @@
       padding: 9px 16px;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       font-family: 'e-Ukraine', sans-serif;
       font-size: 13.5px;
@@ -970,7 +1074,7 @@
       z-index: 300;
       display: none;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
       border: 1px solid rgba(255, 255, 255, 0.14);
     }
@@ -991,16 +1095,10 @@
       font-weight: 500;
     }
 
-    .layout-slider-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-    }
-
-    .layout-slider-row input[type="range"] {
-      flex: 1;
-      accent-color: #F38A00;
+    .layout-hint {
+      font-size: 10.5px;
+      color: #C7C3B5;
+      line-height: 1.3;
     }
 
     .layout-toolbar-actions {
@@ -1273,7 +1371,7 @@
   <div id="app-shell" class="app-shell">
     <div id="toast" class="toast">Скопійовано</div>
 
-    <!-- ==================== ЕКРАН 1: SPLASH (ТІЛЬКИ ФОТО load.jpg) ==================== -->
+    <!-- ==================== ЕКРАН 1: SPLASH ==================== -->
     <section id="screen-splash" class="screen active" onclick="goToScreen('pin')">
       <img id="splash-custom-img" class="splash-custom-img" alt="">
     </section>
@@ -1331,7 +1429,7 @@
 
     <!-- ==================== ЕКРАН 3: LOADING REGISTRY ==================== -->
     <section id="screen-loading" class="screen">
-      <div class="top-action-row">
+      <div class="top-action-row" data-ui-id="top-header-loading" data-ui-name="Верхній колонтитул (Завантаження)">
         <button class="notif-pill" data-ui-id="notif-btn-loading" data-ui-name="Кнопка Сповіщення" onclick="showToast('Нових сповіщень немає')">
           <span>Сповіщення</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
@@ -1342,7 +1440,6 @@
 
       <div class="card-wrapper">
         <div class="loading-card" data-ui-id="loading-card" data-ui-name="Картка завантаження" onclick="goToScreen('id')">
-          <!-- Точний герб Міністерства оборони України за зразком -->
           <svg width="46" height="52" viewBox="0 0 60 68" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
           </svg>
@@ -1354,7 +1451,7 @@
 
     <!-- ==================== ЕКРАН 4: РЕЗЕРВ ID ==================== -->
     <section id="screen-id" class="screen">
-      <div class="top-action-row">
+      <div class="top-action-row" data-ui-id="top-header-id" data-ui-name="Верхній колонтитул (Резерв ID)">
         <button class="notif-pill" data-ui-id="notif-btn-id" data-ui-name="Кнопка Сповіщення" onclick="showToast('Нових сповіщень немає')">
           <span>Сповіщення</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#181815">
@@ -1370,7 +1467,6 @@
           <div class="id-top-section">
             <div class="id-header-row" data-ui-id="id-header" data-ui-name="Шапка Резерв ID">
               <h2>Резерв ID</h2>
-              <!-- Точний герб Міністерства оборони України за зразком -->
               <svg width="36" height="40" viewBox="0 0 60 68" fill="none">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M5 4H55V31C55 49 30 64 30 64C30 64 5 49 5 31V4ZM14 14L20.5 20.5V40H26.5V19.5L30 12.5L33.5 19.5V40H39.5V20.5L46 14V46H33.5V49L30 55L26.5 49V46H14V14Z" fill="#181815"/>
               </svg>
@@ -1451,7 +1547,7 @@
 
     <!-- ==================== ЕКРАН 8: ПОВНА ІНФОРМАЦІЯ ==================== -->
     <section id="screen-full-info" class="screen">
-      <div class="full-info-handle-bar" onclick="goToScreen('id')" title="Закрити">
+      <div class="full-info-handle-bar" data-ui-id="full-top-handle" data-ui-name="Верхній колонтитул (Повна інфо)" onclick="goToScreen('id')" title="Закрити">
         <div class="full-info-handle"></div>
       </div>
 
@@ -1706,8 +1802,8 @@
       </div>
     </section>
 
-    <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ ЗАСТОСУНКУ ==================== -->
-    <nav id="bottom-tabs" class="bottom-tabs" data-ui-id="bottom-tabs" data-ui-name="Нижня панель вкладок">
+    <!-- ==================== НИЖНЯ НАВІГАЦІЙНА ПАНЕЛЬ (НИЖНІЙ КОЛОНТИТУЛ) ==================== -->
+    <nav id="bottom-tabs" class="bottom-tabs" data-ui-id="bottom-tabs" data-ui-name="Нижній колонтитул (Вкладки)">
       <button class="tab-btn active" data-target="id" onclick="goToScreen('id')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
@@ -1783,9 +1879,9 @@
             <input type="range" id="inp-globalScale" min="75" max="125" value="100" oninput="handleGlobalScaleChange(this.value)">
           </div>
 
-          <!-- Режим перетягування та розміру кнопок/блоків прямо в інтерфейсі -->
+          <!-- Режим перетягування, колонтитулів та звуження/розширення -->
           <div class="inline-edit-toggle" onclick="startLayoutEditMode()">
-            <span>Рухати кнопки та змінювати їх розмір на екрані</span>
+            <span>Рухати, тягнути колонтитули, звужувати / розширювати</span>
             <span style="background: #F38A00; color: #181815; padding: 4px 10px; border-radius: 999px; font-size: 11px;">Відкрити</span>
           </div>
 
@@ -1892,15 +1988,26 @@
     </div>
   </div>
 
+  <!-- ==================== РАМКА З МАРКЕРАМИ ДЛЯ КОЛОНТИТУЛІВ ТА ШИРИНИ/ВИСОТИ ==================== -->
+  <div id="resize-overlay" class="resize-overlay-box">
+    <div class="resize-handle edge-n" data-dir="n" title="Тягнути верхній колонтитул"></div>
+    <div class="resize-handle edge-s" data-dir="s" title="Тягнути нижній колонтитул"></div>
+    <div class="resize-handle edge-w" data-dir="w" title="Звузити / розширити зліва"></div>
+    <div class="resize-handle edge-e" data-dir="e" title="Звузити / розширити справа"></div>
+    <div class="resize-handle corner corner-nw" data-dir="nw"></div>
+    <div class="resize-handle corner corner-ne" data-dir="ne"></div>
+    <div class="resize-handle corner corner-sw" data-dir="sw"></div>
+    <div class="resize-handle corner corner-se" data-dir="se"></div>
+  </div>
+
   <!-- ==================== ПЛАВАЮЧА ПАНЕЛЬ РУХУ ТА РОЗМІРУ ==================== -->
   <div id="layout-toolbar" class="layout-toolbar">
     <div class="layout-toolbar-top">
-      <span>Елемент: <strong id="selected-el-label">Натисніть на кнопку</strong></span>
-      <span id="selected-el-size">100%</span>
+      <span>Елемент: <strong id="selected-el-label">Натисніть на елемент</strong></span>
+      <span id="selected-el-dims">—</span>
     </div>
-    <div class="layout-slider-row">
-      <span>Розмір</span>
-      <input type="range" id="el-size-slider" min="50" max="180" value="100" oninput="updateSelectedElementSize(this.value)">
+    <div class="layout-hint">
+      Тягніть за центр — рух • Верхній / нижній маркер — колонтитул • Бічні — звузити / розширити
     </div>
     <div class="layout-toolbar-actions">
       <button class="lt-btn lt-btn-reset" onclick="resetSelectedElementLayout()">Скинути елемент</button>
@@ -2024,15 +2131,40 @@
         const id = el.dataset.uiId;
         const cfg = layouts[id];
 
-        if (cfg && (cfg.x !== 0 || cfg.y !== 0 || (cfg.scale && cfg.scale !== 100))) {
+        if (cfg) {
           const x = cfg.x || 0;
           const y = cfg.y || 0;
-          const sc = (cfg.scale || 100) / 100;
-          el.style.transform = `translate(${x}px, ${y}px) scale(${sc})`;
+          el.style.transform = (x !== 0 || y !== 0) ? `translate(${x}px, ${y}px)` : '';
+
+          if (cfg.w) {
+            el.style.width = cfg.w + 'px';
+            el.style.maxWidth = 'none';
+            el.style.flex = 'none';
+          } else {
+            el.style.width = '';
+            el.style.maxWidth = '';
+            el.style.flex = '';
+          }
+
+          if (cfg.h) {
+            el.style.height = cfg.h + 'px';
+            el.style.minHeight = cfg.h + 'px';
+            el.style.flex = 'none';
+          } else {
+            el.style.height = '';
+            el.style.minHeight = '';
+          }
         } else {
           el.style.transform = '';
+          el.style.width = '';
+          el.style.maxWidth = '';
+          el.style.height = '';
+          el.style.minHeight = '';
+          el.style.flex = '';
         }
       });
+
+      updateResizeOverlay();
     }
 
     function handleGlobalScaleChange(val) {
@@ -2100,7 +2232,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v10');
+        const raw = localStorage.getItem('rezerv_ui_data_v12');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = { ...defaultData, ...parsed, customLayouts: parsed.customLayouts || {} };
@@ -2134,7 +2266,7 @@
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v10', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v12', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -2197,6 +2329,12 @@
           autoTimer = setTimeout(() => goToScreen('id'), 1800);
         }
       }
+
+      if (layoutEditMode) {
+        selectedUiId = null;
+        document.querySelectorAll('.layout-selected').forEach(el => el.classList.remove('layout-selected'));
+        updateResizeOverlay();
+      }
     }
 
     function handleCardClick() {
@@ -2253,13 +2391,13 @@
       }, 1800);
     }
 
-    /* ==================== РЕЖИМ ПЕРЕМІЩЕННЯ ТА ЗМІНИ РОЗМІРУ ЕЛЕМЕНТІВ ==================== */
+    /* ==================== РЕЖИМ ПЕРЕМІЩЕННЯ, КОЛОНТИТУЛІВ ТА ШИРИНИ/ВИСОТИ ==================== */
     function startLayoutEditMode() {
       closeEditor();
       layoutEditMode = true;
       document.body.classList.add('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.add('open');
-      showToast('Тягніть будь-який елемент пальцем');
+      showToast('Натисніть на елемент або колонтитул');
     }
 
     function stopLayoutEditMode() {
@@ -2267,9 +2405,44 @@
       selectedUiId = null;
       document.body.classList.remove('layout-edit-mode');
       document.getElementById('layout-toolbar').classList.remove('open');
+      document.getElementById('resize-overlay').classList.remove('visible');
       document.querySelectorAll('.layout-selected').forEach(el => el.classList.remove('layout-selected'));
       persistData();
-      showToast('Позиції та розміри збережено');
+      showToast('Розміри та позиції збережено');
+    }
+
+    function updateResizeOverlay() {
+      const overlay = document.getElementById('resize-overlay');
+      const dimsLabel = document.getElementById('selected-el-dims');
+      if (!overlay) return;
+
+      if (!layoutEditMode || !selectedUiId) {
+        overlay.classList.remove('visible');
+        if (dimsLabel) dimsLabel.textContent = '—';
+        return;
+      }
+
+      const targetEl = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
+      if (!targetEl) {
+        overlay.classList.remove('visible');
+        return;
+      }
+
+      const rect = targetEl.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        overlay.classList.remove('visible');
+        return;
+      }
+
+      overlay.style.left = rect.left + 'px';
+      overlay.style.top = rect.top + 'px';
+      overlay.style.width = rect.width + 'px';
+      overlay.style.height = rect.height + 'px';
+      overlay.classList.add('visible');
+
+      if (dimsLabel) {
+        dimsLabel.textContent = `${Math.round(rect.width)}×${Math.round(rect.height)} px`;
+      }
     }
 
     function selectLayoutElement(el) {
@@ -2278,44 +2451,55 @@
       selectedUiId = el.dataset.uiId;
 
       if (!appData.customLayouts[selectedUiId]) {
-        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 100 };
+        appData.customLayouts[selectedUiId] = { x: 0, y: 0, w: null, h: null };
       }
 
-      const currentScale = appData.customLayouts[selectedUiId].scale || 100;
       document.getElementById('selected-el-label').textContent = el.dataset.uiName || selectedUiId;
-      document.getElementById('selected-el-size').textContent = currentScale + '%';
-      document.getElementById('el-size-slider').value = currentScale;
-    }
-
-    function updateSelectedElementSize(val) {
-      if (!selectedUiId) {
-        showToast('Спочатку натисніть на елемент');
-        return;
-      }
-      if (!appData.customLayouts[selectedUiId]) {
-        appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 100 };
-      }
-      appData.customLayouts[selectedUiId].scale = Number(val);
-      document.getElementById('selected-el-size').textContent = val + '%';
-      applyCustomLayouts();
-      persistData();
+      updateResizeOverlay();
     }
 
     function resetSelectedElementLayout() {
       if (!selectedUiId) return;
       delete appData.customLayouts[selectedUiId];
-      document.getElementById('selected-el-size').textContent = '100%';
-      document.getElementById('el-size-slider').value = 100;
       applyCustomLayouts();
+      updateResizeOverlay();
       persistData();
-      showToast('Елемент повернуто на місце');
+      showToast('Елемент повернуто до стандарту');
     }
 
-    let dragState = null;
+    let actionState = null;
 
     document.addEventListener('pointerdown', (e) => {
       if (!layoutEditMode) return;
       if (e.target.closest('#layout-toolbar')) return;
+
+      const gScale = (Number(appData.globalScale) || 100) / 100;
+
+      const handleEl = e.target.closest('.resize-handle');
+      if (handleEl && selectedUiId) {
+        const targetEl = document.querySelector(`[data-ui-id="${selectedUiId}"]`);
+        if (!targetEl) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rect = targetEl.getBoundingClientRect();
+        const cfg = appData.customLayouts[selectedUiId] || { x: 0, y: 0, w: null, h: null };
+
+        actionState = {
+          mode: 'resize',
+          dir: handleEl.dataset.dir,
+          id: selectedUiId,
+          startX: e.clientX,
+          startY: e.clientY,
+          origX: cfg.x || 0,
+          origY: cfg.y || 0,
+          origW: rect.width / gScale,
+          origH: rect.height / gScale,
+          gScale: gScale
+        };
+        return;
+      }
 
       const targetEl = e.target.closest('[data-ui-id]');
       if (!targetEl) return;
@@ -2326,10 +2510,10 @@
       selectLayoutElement(targetEl);
 
       const id = targetEl.dataset.uiId;
-      const cfg = appData.customLayouts[id] || { x: 0, y: 0, scale: 100 };
-      const gScale = (Number(appData.globalScale) || 100) / 100;
+      const cfg = appData.customLayouts[id] || { x: 0, y: 0, w: null, h: null };
 
-      dragState = {
+      actionState = {
+        mode: 'move',
         id: id,
         startX: e.clientX,
         startY: e.clientY,
@@ -2340,22 +2524,61 @@
     }, true);
 
     document.addEventListener('pointermove', (e) => {
-      if (!layoutEditMode || !dragState) return;
+      if (!layoutEditMode || !actionState) return;
       e.preventDefault();
 
-      const dx = (e.clientX - dragState.startX) / dragState.gScale;
-      const dy = (e.clientY - dragState.startY) / dragState.gScale;
+      const dx = (e.clientX - actionState.startX) / actionState.gScale;
+      const dy = (e.clientY - actionState.startY) / actionState.gScale;
+      const cfg = appData.customLayouts[actionState.id];
 
-      appData.customLayouts[dragState.id].x = Math.round(dragState.origX + dx);
-      appData.customLayouts[dragState.id].y = Math.round(dragState.origY + dy);
+      if (actionState.mode === 'move') {
+        cfg.x = Math.round(actionState.origX + dx);
+        cfg.y = Math.round(actionState.origY + dy);
+      } else if (actionState.mode === 'resize') {
+        const dir = actionState.dir;
+        let newW = actionState.origW;
+        let newH = actionState.origH;
+        let newX = actionState.origX;
+        let newY = actionState.origY;
+
+        if (dir.includes('e')) {
+          newW = Math.max(24, Math.round(actionState.origW + dx));
+        }
+        if (dir.includes('w')) {
+          const proposedW = Math.max(24, Math.round(actionState.origW - dx));
+          const actualDx = actionState.origW - proposedW;
+          newW = proposedW;
+          newX = Math.round(actionState.origX + actualDx);
+        }
+        if (dir.includes('s')) {
+          newH = Math.max(20, Math.round(actionState.origH + dy));
+        }
+        if (dir.includes('n')) {
+          const proposedH = Math.max(20, Math.round(actionState.origH - dy));
+          const actualDy = actionState.origH - proposedH;
+          newH = proposedH;
+          newY = Math.round(actionState.origY + actualDy);
+        }
+
+        if (dir.includes('e') || dir.includes('w')) cfg.w = newW;
+        if (dir.includes('n') || dir.includes('s')) cfg.h = newH;
+        cfg.x = newX;
+        cfg.y = newY;
+      }
+
       applyCustomLayouts();
     }, { passive: false });
 
     document.addEventListener('pointerup', () => {
-      if (dragState) {
-        dragState = null;
+      if (actionState) {
+        actionState = null;
         persistData();
+        updateResizeOverlay();
       }
+    });
+
+    window.addEventListener('resize', () => {
+      if (layoutEditMode) updateResizeOverlay();
     });
 
     /* ==================== ЛОГІКА 4 НАТИСКАНЬ І РЕДАКТОРА ==================== */
@@ -2432,7 +2655,7 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {} };
-      localStorage.removeItem('rezerv_ui_data_v10');
+      localStorage.removeItem('rezerv_ui_data_v12');
       applyDataToUI();
       openEditor();
       showToast('Дані та позиції скинуто');
