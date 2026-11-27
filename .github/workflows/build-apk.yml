@@ -27,6 +27,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Prepare Android SDK licenses
         run: |
@@ -1646,7 +1647,20 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+
+          attempt=1
+          max_attempts=5
+          until ./gradlew assembleDebug --no-daemon; do
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Gradle build failed after $max_attempts attempts"
+              exit 1
+            fi
+            sleep_sec=$((attempt * 15))
+            echo "Maven/Gradle transient error (429/network). Retry $((attempt + 1))/$max_attempts in ${sleep_sec}s..."
+            sleep "$sleep_sec"
+            rm -rf ~/.gradle/caches/modules-2/modules-2.lock ~/.gradle/wrapper/dists/*/*.lck || true
+            attempt=$((attempt + 1))
+          done
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
