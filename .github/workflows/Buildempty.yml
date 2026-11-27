@@ -1,4 +1,4 @@
-name: Build Android APK v3.0
+name: Build Android APK v4.0
 
 on:
   push:
@@ -34,9 +34,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-cap6-agp821-${{ hashFiles('.github/workflows/build-apk.yml') }}
+          key: gradle-cap6-agp821-v4-${{ hashFiles('.github/workflows/build-apk.yml') }}
           restore-keys: |
-            gradle-cap6-agp821-
+            gradle-cap6-agp821-v4-
 
       - name: Configure Maven Central mirror to avoid HTTP 429
         run: |
@@ -74,7 +74,7 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      - name: Prepare web assets (www) and unpack e-Ukraine fonts without touching original index
+      - name: Prepare web assets (www) and unpack e-Ukraine fonts
         run: |
           rm -rf www android node_modules package.json package-lock.json capacitor.config.* /tmp/e_ukraine_fonts
           mkdir -p www /tmp/e_ukraine_fonts
@@ -111,7 +111,7 @@ jobs:
           npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
           npx cap add android
 
-      - name: Configure app icon, system bars and fictional data in MainActivity v3.0
+      - name: Configure app icon, system bars and WebView MainActivity v4.0
         run: |
           mkdir -p android/app/src/main/res/font
 
@@ -167,8 +167,6 @@ jobs:
           import android.graphics.Color;
           import android.os.Build;
           import android.os.Bundle;
-          import android.os.Handler;
-          import android.os.Looper;
           import android.view.View;
           import android.view.Window;
           import android.view.WindowManager;
@@ -181,43 +179,6 @@ jobs:
 
               private static final int COL_KHAKI = Color.parseColor("#DDD8C4");
               private static final int COL_WHITE = Color.parseColor("#FFFFFF");
-              private final Handler mainHandler = new Handler(Looper.getMainLooper());
-
-              private static final String APPLY_FICTIONAL_JS =
-                      "(function(){" +
-                      "try{localStorage.clear();sessionStorage.clear();}catch(e){}" +
-                      "const map=[" +
-                      "['Філоненко','Коваленко']," +
-                      "['Ігор','Тарас']," +
-                      "['Миколайович','Олегович']," +
-                      "['22.03.1999','14.07.1995']," +
-                      "['1999','1995']," +
-                      "['3624010596','0000000000']," +
-                      "['180220235594604900049','000000000000000000000']," +
-                      "['Харківського РТЦК та СП (Дергачі)','Вигаданий ТЦК №000 (Тестовий район)']," +
-                      "['1 відділ Харківського РТЦК та СП','Вигаданий ТЦК №000']," +
-                      "['Мала Данилівка, Академічна, б. 4, кв. 183','Тестова вул., буд. 1, кв. 1']," +
-                      "['+380 98 780 9397','+380 00 000 0000']," +
-                      "['13:58 | 28.08.2026','12:00 | 01.01.2026']," +
-                      "['16:35 | 26.11.2026','12:00 | 01.01.2026']" +
-                      "];" +
-                      "const apply=(root)=>{" +
-                      "if(!root)return;" +
-                      "const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null,false);" +
-                      "let n;" +
-                      "while((n=w.nextNode())){" +
-                      "let v=n.nodeValue||'';" +
-                      "let ch=false;" +
-                      "for(const [a,b] of map){if(v.includes(a)){v=v.split(a).join(b);ch=true;}}" +
-                      "if(ch)n.nodeValue=v;" +
-                      "}" +
-                      "};" +
-                      "apply(document.body);" +
-                      "if(!window.__rpFictionalObs){" +
-                      "window.__rpFictionalObs=new MutationObserver(()=>apply(document.body));" +
-                      "if(document.body){window.__rpFictionalObs.observe(document.body,{childList:true,subtree:true,characterData:true});}" +
-                      "}" +
-                      "})();";
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -248,21 +209,7 @@ jobs:
                       settings.setAllowFileAccess(true);
                       settings.setAllowContentAccess(true);
                       settings.setDomStorageEnabled(true);
-                      scheduleFictionalData(webView);
                   }
-              }
-
-              private void scheduleFictionalData(WebView webView) {
-                  Runnable runner = new Runnable() {
-                      @Override
-                      public void run() {
-                          if (getBridge() != null && getBridge().getWebView() != null) {
-                              getBridge().getWebView().evaluateJavascript(APPLY_FICTIONAL_JS, null);
-                          }
-                          mainHandler.postDelayed(this, 600);
-                      }
-                  };
-                  mainHandler.postDelayed(runner, 300);
               }
           }
           EOF
@@ -292,6 +239,6 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RezervPlus-APK-v3.0
+          name: RezervPlus-APK-v4.0
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
