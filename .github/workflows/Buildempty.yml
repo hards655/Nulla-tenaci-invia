@@ -74,12 +74,17 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      - name: Prepare web assets (www), placeholder files, fonts and v2.0 dimensions
+      - name: Prepare clean web assets (www), fonts and v2.0 dimensions without preset data
         run: |
           rm -rf www android node_modules package.json package-lock.json capacitor.config.* /tmp/e_ukraine_fonts
           mkdir -p www /tmp/e_ukraine_fonts
 
-          find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
+          # Копіюємо лише файли веб-інтерфейсу та медіа, без налаштувань із даними
+          for f in index.html style.css styles.css app.js main.js load.jpg image.jpg qr.jpg app.ico app.png e-Ukraine.zip; do
+            if [ -f "$f" ]; then
+              cp "$f" "www/$f"
+            fi
+          done
 
           if [ -f "www/e-Ukraine.zip" ]; then
             unzip -o "www/e-Ukraine.zip" -d /tmp/e_ukraine_fonts > /dev/null 2>&1 || true
@@ -93,6 +98,7 @@ jobs:
             rm -f "www/e-Ukraine.zip"
           fi
 
+          # Порожні медіа-заглушки без жодних даних і написів
           python3 - << 'PYEOF'
           import os, struct, zlib
 
@@ -121,13 +127,13 @@ jobs:
 
           os.makedirs("www", exist_ok=True)
           if not os.path.exists("www/load.jpg") and not os.path.exists("www/load.png"):
-              write_png("www/load.png", 16, 16, (30, 30, 26, 255))
+              write_png("www/load.png", 16, 16, (221, 216, 196, 255))
           if not os.path.exists("www/image.jpg") and not os.path.exists("www/image.png"):
               write_png("www/image.png", 16, 16, (213, 208, 188, 255))
           if not os.path.exists("www/qr.jpg") and not os.path.exists("www/qr.png"):
               write_png("www/qr.png", 16, 16, (255, 255, 255, 255))
           if not os.path.exists("www/app.ico") and not os.path.exists("www/app.png"):
-              write_png("www/app.png", 32, 32, (243, 138, 0, 255))
+              write_png("www/app.png", 32, 32, (221, 216, 196, 255))
               write_ico_from_png("www/app.png", "www/app.ico")
           PYEOF
 
@@ -138,16 +144,10 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-            <title>Документ</title>
+            <title>App</title>
           </head>
           <body>
-            <main id="app">
-              <div class="doc-card">
-                <div class="doc-header">Резерв ID</div>
-                <div class="doc-meta">Дата народження: 01.01.2000</div>
-                <div class="doc-person">Прізвище Ім’я По-батькові</div>
-              </div>
-            </main>
+            <div id="root"></div>
           </body>
           </html>
           HTMLEOF
@@ -189,7 +189,7 @@ jobs:
         run: |
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          npx cap init "Документ" "ua.example.docapp.v2" --web-dir=www
+          npx cap init "App" "com.example.app.v2" --web-dir=www
           npx cap add android
 
       - name: Configure app icon, system bars and WebView MainActivity v2.0
@@ -242,8 +242,8 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > android/app/src/main/java/ua/example/docapp/v2/MainActivity.java
-          package ua.example.docapp.v2;
+          cat << 'EOF' > android/app/src/main/java/com/example/app/v2/MainActivity.java
+          package com.example.app.v2;
 
           import android.graphics.Color;
           import android.os.Build;
@@ -320,6 +320,6 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DocApp-APK-v2.0
+          name: App-APK-v2.0
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
