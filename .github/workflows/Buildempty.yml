@@ -1,4 +1,4 @@
-name: Build Android APK v4.0 (Empty Settings)
+name: Build Android APK v4.0 (Fictional Settings)
 
 on:
   push:
@@ -34,9 +34,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-cap6-agp821-v4-empty-${{ hashFiles('.github/workflows/build-apk.yml') }}
+          key: gradle-cap6-agp821-v4-fictional-${{ hashFiles('.github/workflows/build-apk.yml') }}
           restore-keys: |
-            gradle-cap6-agp821-v4-empty-
+            gradle-cap6-agp821-v4-fictional-
 
       - name: Configure Maven Central mirror to avoid HTTP 429
         run: |
@@ -74,12 +74,12 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      - name: Prepare web assets (www), generate empty settings.json and unpack fonts
+      - name: Prepare web assets (www), generate fictional settings.json and sanitize build copy
         run: |
           rm -rf www android node_modules package.json package-lock.json capacitor.config.* /tmp/e_ukraine_fonts
           mkdir -p www /tmp/e_ukraine_fonts
 
-          # Копіюємо файли інтерфейсу, крім settings.json та реальних фото/QR
+          # Копіюємо файли у тимчасову папку збірки www/ (оригінал у репозиторії не змінюється)
           find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" ! -name "settings.json" ! -name "image.jpg" ! -name "qr.jpg" -exec cp {} www/ \;
 
           if [ -f "www/e-Ukraine.zip" ]; then
@@ -94,35 +94,127 @@ jobs:
             rm -f "www/e-Ukraine.zip"
           fi
 
-          # Генеруємо порожній settings.json (зберігаючи структуру ключів, якщо файл існував, або порожній об'єкт)
           python3 - << 'PYEOF'
-          import json, os, struct, zlib
+          import json, os, re, struct, zlib
 
-          def clear_values(obj):
+          fictional_values = {
+              "fullName": "Коваленко\nТарас\nОлегович",
+              "name": "Коваленко Тарас Олегович",
+              "pib": "Коваленко Тарас Олегович",
+              "surname": "Коваленко",
+              "firstName": "Тарас",
+              "middleName": "Олегович",
+              "birthDate": "14.07.1995",
+              "dob": "14.07.1995",
+              "rnokpp": "0000000000",
+              "taxId": "0000000000",
+              "ipn": "0000000000",
+              "tck": "Вигаданий ТЦК №000 (Тестовий район)",
+              "rtc": "Вигаданий ТЦК №000 (Тестовий район)",
+              "rank": "Солдат",
+              "vos": "000000",
+              "vosDesc": "Тестовий опис ВОС для перевірки інтерфейсу",
+              "category": "Військовозобов’язаний",
+              "role": "Військовозобов’язаний",
+              "oberig": "000000000000000000000",
+              "registryNumber": "000000000000000000000",
+              "phone": "+380 00 000 0000",
+              "address": "Тестова вул., буд. 1, кв. 1",
+              "deferral": "01.01.2028",
+              "updatedAt": "12:00 | 01.01.2026",
+              "ticker": "Документ оновлено о 12:00 | 01.01.2026",
+              "qrTitle": "Тестовий QR-код дійсний до 01 січня 2028",
+              "qrNote": "Тестове повідомлення. Вигадані дані для перевірки."
+          }
+
+          def fill_fictional(obj, key_hint=""):
               if isinstance(obj, dict):
-                  return {k: clear_values(v) for k, v in obj.items()}
+                  return {k: fill_fictional(v, k) for k, v in obj.items()}
               elif isinstance(obj, list):
-                  return []
+                  return [fill_fictional(item, key_hint) for item in obj]
               elif isinstance(obj, bool):
                   return False
               elif isinstance(obj, (int, float)):
                   return 0
-              else:
+              elif isinstance(obj, str):
+                  kl = key_hint.lower()
+                  for k, val in fictional_values.items():
+                      if k.lower() == kl:
+                          return val
+                  if "birth" in kl or "dob" in kl or "date" in kl:
+                      return "14.07.1995"
+                  if "name" in kl or "pib" in kl or "fio" in kl:
+                      return "Коваленко Тарас Олегович"
+                  if "phone" in kl or "tel" in kl:
+                      return "+380 00 000 0000"
+                  if "addr" in kl:
+                      return "Тестова вул., буд. 1, кв. 1"
+                  if "tck" in kl or "unit" in kl or "office" in kl:
+                      return "Вигаданий ТЦК №000 (Тестовий район)"
                   return ""
+              return obj
 
-          empty_settings = {}
+          settings_data = {}
           if os.path.exists("settings.json"):
               try:
                   with open("settings.json", "r", encoding="utf-8") as f:
-                      orig = json.load(f)
-                  empty_settings = clear_values(orig)
+                      raw_settings = json.load(f)
+                  settings_data = fill_fictional(raw_settings)
               except Exception:
-                  empty_settings = {}
+                  settings_data = {}
+
+          for k, v in fictional_values.items():
+              if k not in settings_data:
+                  settings_data[k] = v
 
           with open("www/settings.json", "w", encoding="utf-8") as f:
-              json.dump(empty_settings, f, ensure_ascii=False, indent=2)
+              json.dump(settings_data, f, ensure_ascii=False, indent=2)
 
-          # Порожні заглушки для image.jpg та qr.jpg без персональних фото
+          # Замінюємо виявлені значення в копії файлів збірки www/ (оригінал у репозиторії не змінюється)
+          replace_pairs = {
+              "Філоненко": "Коваленко",
+              "Ігор": "Тарас",
+              "Миколайович": "Олегович",
+              "22.03.1999": "14.07.1995",
+              "1999": "1995",
+              "3624010596": "0000000000",
+              "180220235594604900049": "000000000000000000000",
+              "Харківського РТЦК та СП (Дергачі)": "Вигаданий ТЦК №000 (Тестовий район)",
+              "1 відділ Харківського РТЦК та СП": "Вигаданий ТЦК №000",
+              "Мала Данилівка, Академічна, б. 4, кв. 183": "Тестова вул., буд. 1, кв. 1",
+              "+380 98 780 9397": "+380 00 000 0000",
+              "13:58 | 28.08.2026": "12:00 | 01.01.2026",
+              "16:35 | 26.11.2026": "12:00 | 01.01.2026",
+              "26.11.2026": "01.01.2026",
+              "28.08.2026": "01.01.2026",
+              "20.05.2024": "01.01.2025",
+              "26 листопада 2027": "01 січня 2028",
+              "Ihor Filonenko": "Taras Kovalenko",
+              "FLVMEFRKR": "TEST_ALIAS"
+          }
+
+          text_exts = {".html", ".htm", ".js", ".mjs", ".css", ".json", ".txt", ".svg"}
+          for root, _, files in os.walk("www"):
+              for fname in files:
+                  if fname == "settings.json":
+                      continue
+                  if os.path.splitext(fname)[1].lower() not in text_exts:
+                      continue
+                  fpath = os.path.join(root, fname)
+                  try:
+                      with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                          src = f.read()
+                      out = src
+                      for old_s, new_s in replace_pairs.items():
+                          out = out.replace(old_s, new_s)
+                      out = re.sub(r"\b\d{21}\b", "000000000000000000000", out)
+                      out = re.sub(r"\b\d{10}\b", "0000000000", out)
+                      if out != src:
+                          with open(fpath, "w", encoding="utf-8") as f:
+                              f.write(out)
+                  except Exception:
+                      pass
+
           def write_png(path, width, height, rgba):
               def chunk(tag, data):
                   return struct.pack("!I", len(data)) + tag + data + struct.pack("!I", zlib.crc32(tag + data) & 0xffffffff)
@@ -289,6 +381,6 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RezervPlus-APK-v4.0-empty
+          name: RezervPlus-APK-v4.0-fictional
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
