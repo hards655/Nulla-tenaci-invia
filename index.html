@@ -11,7 +11,7 @@
   <title>Резерв+</title>
 
   <link rel="icon" href="data:image/svg+xml," />
-  <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.png" />
+  <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="app.ico" />
 
   <script>
     let deferredPrompt = null;
@@ -31,7 +31,7 @@
       }
     }
 
-    const pngUrl = new URL('app.png', location.href).href;
+    const iconUrl = new URL('app.ico', location.href).href;
 
     const manifest = {
       name: 'Резерв+',
@@ -44,14 +44,14 @@
       theme_color: '#DDD8C4',
       icons: [
         {
-          src: pngUrl,
+          src: iconUrl,
           sizes: '192x192',
-          type: 'image/png'
+          type: 'image/x-icon'
         },
         {
-          src: pngUrl,
+          src: iconUrl,
           sizes: '512x512',
-          type: 'image/png'
+          type: 'image/x-icon'
         }
       ]
     };
@@ -88,7 +88,7 @@
       const v = Date.now();
       const appleIcon = document.getElementById('apple-touch-icon');
       if (appleIcon) {
-        appleIcon.href = `${pngUrl}?v=${v}`;
+        appleIcon.href = `${iconUrl}?v=${v}`;
       }
       updateInstallButtonState();
     });
@@ -196,7 +196,7 @@
       background: #F38A00;
       color: #181815;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 500;
       padding: 2px 7px;
       border-radius: 6px;
       white-space: nowrap;
@@ -213,7 +213,7 @@
       background: rgba(24, 24, 21, 0.92);
       color: #F9E255;
       font-size: 10px;
-      font-weight: 500;
+      font-weight: 400;
       padding: 2px 7px;
       border-radius: 6px;
       white-space: nowrap;
@@ -321,7 +321,7 @@
 
     .mini-slider-value {
       font-size: 10.5px;
-      font-weight: 500;
+      font-weight: 400;
       color: #F9E255;
       min-width: 34px;
       text-align: right;
@@ -333,6 +333,7 @@
       max-height: 100dvh;
       background-color: var(--bg-beige);
       font-family: var(--app-font);
+      font-weight: 400;
       overflow: hidden;
       overscroll-behavior: none;
     }
@@ -390,6 +391,7 @@
       }
     }
 
+    /* Фон хакі зверху захоплює всю верхню зону включно зі статус-баром */
     .screen {
       display: none;
       flex: 1;
@@ -446,7 +448,7 @@
     }
 
     .pin-header {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 400;
       color: var(--text-main);
       letter-spacing: -0.02em;
@@ -481,13 +483,14 @@
       padding: 0 8px;
     }
 
+    /* Цифри PIN 0–9: e-Ukraine Regular 400, 32px */
     .num-btn {
       width: clamp(66px, 19vw, 78px);
       height: clamp(66px, 19vw, 78px);
       border-radius: 50%;
       background-color: #FFFFFF;
       border: none;
-      font-size: 26px;
+      font-size: 32px;
       font-weight: 400;
       color: var(--text-main);
       display: flex;
@@ -508,7 +511,7 @@
 
     .forgot-pin {
       text-align: center;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
@@ -517,11 +520,12 @@
     .top-action-row {
       display: flex;
       justify-content: flex-end;
-      padding: 10px 22px 16px;
+      padding: 10px 22px 14px;
       flex-shrink: 0;
       background-color: var(--bg-beige);
     }
 
+    /* «Сповіщення» — Regular 400, 13px */
     .notif-pill {
       background-color: #FFFFFF;
       border: none;
@@ -531,7 +535,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
@@ -544,7 +548,7 @@
 
     .card-wrapper {
       flex: 1;
-      padding: 0 22px 10px;
+      padding: 0 22px 0;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -566,8 +570,8 @@
 
     .loading-card h2 {
       margin-top: 22px;
-      font-size: 24px;
-      font-weight: 500;
+      font-size: 25px;
+      font-weight: 400;
       line-height: 1.22;
       color: var(--text-main);
       letter-spacing: -0.02em;
@@ -690,7 +694,7 @@
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 400;
       flex-shrink: 0;
     }
 
@@ -699,8 +703,8 @@
       color: #FFFFFF;
       text-align: center;
       padding: 8px 12px;
-      font-size: 10.5px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 400;
       line-height: 1.25;
       letter-spacing: 0.02em;
       text-transform: uppercase;
@@ -724,11 +728,12 @@
       align-items: center;
     }
 
+    /* Заголовок документа — Regular 400, 28px, міжлітерний інтервал -1px */
     .id-header-row h2 {
-      font-size: 23px;
+      font-size: 28px;
       font-weight: 400;
       color: var(--text-main);
-      letter-spacing: -0.02em;
+      letter-spacing: -1px;
     }
 
     .id-main-info {
@@ -766,18 +771,19 @@
       padding-top: 2px;
     }
 
+    /* Підписи полів документа — Regular 400, 13px */
     .meta-group span {
       display: block;
-      font-size: 12px;
-      font-weight: 300;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-muted);
       margin-bottom: 3px;
     }
 
     .meta-group strong {
       display: block;
-      font-size: 14.5px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 400;
       line-height: 1.28;
       color: var(--text-main);
     }
@@ -786,7 +792,7 @@
       background-color: var(--ticker-brown);
       color: #FFFFFF;
       padding: 6px 0;
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 400;
       white-space: nowrap;
       overflow: hidden;
@@ -802,7 +808,7 @@
     .ticker-strip.updating-mode {
       background-color: var(--ticker-yellow) !important;
       color: #181815 !important;
-      font-weight: 500;
+      font-weight: 400;
     }
 
     .ticker-content {
@@ -825,8 +831,8 @@
     }
 
     .id-role-label {
-      font-size: 12.5px;
-      font-weight: 300;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-muted);
       margin-bottom: 5px;
     }
@@ -928,7 +934,7 @@
       align-items: center;
       gap: 14px;
       padding: 9px 0;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 400;
       line-height: 1.25;
       color: var(--text-main);
@@ -985,8 +991,8 @@
     }
 
     .info-card-role {
-      font-size: 13.5px;
-      font-weight: 300;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-muted);
       margin-bottom: 14px;
     }
@@ -1006,14 +1012,14 @@
     }
 
     .info-label {
-      font-size: 12.5px;
-      font-weight: 300;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-muted);
       margin-bottom: 3px;
     }
 
     .info-value {
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 400;
       line-height: 1.32;
       color: var(--text-main);
@@ -1055,7 +1061,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 400;
       color: var(--text-main);
       margin-bottom: 14px;
@@ -1074,13 +1080,13 @@
     }
 
     #screen-menu {
-      padding: calc(var(--safe-top) + 10px) 22px 18px;
+      padding: calc(var(--safe-top) + 10px) 22px 14px;
       overflow-y: auto;
     }
 
     .page-title {
-      font-size: 26px;
-      font-weight: 500;
+      font-size: 28px;
+      font-weight: 400;
       color: var(--text-main);
       letter-spacing: -0.02em;
     }
@@ -1132,7 +1138,7 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 400;
       color: var(--text-main);
     }
@@ -1145,14 +1151,15 @@
       border: none;
       border-radius: 999px;
       padding: 13px 38px;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 400;
       cursor: pointer;
     }
 
+    /* Посилання на повідомлення про обробку персональних даних — Light 300, 12px */
     .privacy-link {
       text-align: center;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 300;
       color: #3D3B34;
       text-decoration: underline;
@@ -1162,7 +1169,7 @@
     }
 
     #screen-vacancies {
-      padding: calc(var(--safe-top) + 10px) 22px 14px;
+      padding: calc(var(--safe-top) + 10px) 22px 10px;
       justify-content: space-between;
     }
 
@@ -1184,9 +1191,10 @@
       margin-bottom: 8px;
     }
 
+    /* Заголовок «Вакансії» — Regular 400, 28px */
     .vac-content h1 {
-      font-size: 27px;
-      font-weight: 500;
+      font-size: 28px;
+      font-weight: 400;
       color: var(--text-main);
       margin-bottom: 14px;
       letter-spacing: -0.02em;
@@ -1214,7 +1222,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
@@ -1235,7 +1243,7 @@
     .custom-checkbox.checked::after {
       content: '✓';
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 400;
     }
 
     .primary-orange-btn {
@@ -1247,7 +1255,7 @@
       border-radius: 999px;
       padding: 15px;
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 400;
       cursor: pointer;
       transition: transform 0.14s ease;
     }
@@ -1257,7 +1265,7 @@
     }
 
     #screen-services {
-      padding: calc(var(--safe-top) + 10px) 22px 18px;
+      padding: calc(var(--safe-top) + 10px) 22px 14px;
       overflow-y: auto;
     }
 
@@ -1271,7 +1279,7 @@
       align-items: center;
       padding: 17px 0;
       border-bottom: 1px solid var(--divider-beige);
-      font-size: 15.5px;
+      font-size: 16px;
       font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
@@ -1286,15 +1294,17 @@
       border-bottom: none;
     }
 
+    /* Суцільний білий фон внизу повністю перекриває кнопки та навігаційну зону */
     .bottom-tabs {
       width: 100%;
       flex-shrink: 0;
       background-color: #FFFFFF;
-      box-shadow: 0 120px 0 120px #FFFFFF;
+      box-shadow: 0 240px 0 240px #FFFFFF;
       display: none;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 10px 4px calc(14px + var(--safe-bottom));
+      padding: 10px 4px calc(12px + var(--safe-bottom));
+      margin: 0;
       z-index: 60;
       border: none;
     }
@@ -1309,6 +1319,7 @@
       display: grid;
     }
 
+    /* Неактивні підписи: e-Ukraine Regular 400, 11px; іконка над підписом */
     .tab-btn {
       display: flex;
       flex-direction: column;
@@ -1318,7 +1329,7 @@
       background: none;
       border: none;
       color: #6E6B60;
-      font-size: 11.5px;
+      font-size: 11px;
       line-height: 1.15;
       font-weight: 400;
       cursor: pointer;
@@ -1346,9 +1357,10 @@
       display: block;
     }
 
+    /* Активний підпис: e-Ukraine Medium 500, 11px */
     .tab-btn.active {
       color: #181815;
-      font-weight: 600;
+      font-weight: 500;
     }
 
     .tab-btn.active svg {
@@ -1385,7 +1397,7 @@
       border-radius: 999px;
       border: none;
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 400;
       cursor: pointer;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
     }
@@ -1427,7 +1439,7 @@
 
     .caption-popup h4 {
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 400;
       color: var(--text-main);
     }
 
@@ -1437,6 +1449,7 @@
       border-radius: 8px;
       padding: 8px 10px;
       font-size: 13px;
+      font-weight: 400;
       color: var(--text-main);
       user-select: text;
     }
@@ -1481,7 +1494,7 @@
 
     .editor-header h3 {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 400;
       color: var(--text-main);
     }
 
@@ -1492,7 +1505,7 @@
       width: 28px;
       height: 28px;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 400;
       cursor: pointer;
     }
 
@@ -1506,8 +1519,8 @@
     }
 
     .editor-section-title {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-main);
       padding-top: 4px;
     }
@@ -1574,7 +1587,7 @@
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 400;
       color: var(--text-main);
       cursor: pointer;
     }
@@ -1592,7 +1605,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 400;
       color: var(--text-main);
     }
 
@@ -1607,6 +1620,7 @@
       border-radius: 8px;
       padding: 8px 10px;
       font-size: 13px;
+      font-weight: 400;
       color: var(--text-main);
       background: #FFFFFF;
     }
@@ -1627,8 +1641,8 @@
     }
 
     .caption-item-row label {
-      font-size: 10.5px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 400;
       color: var(--text-muted);
     }
 
@@ -1638,6 +1652,7 @@
       border-radius: 7px;
       padding: 6px 9px;
       font-size: 12px;
+      font-weight: 400;
       color: var(--text-main);
       background: #FFFFFF;
       user-select: text;
@@ -1650,8 +1665,8 @@
     }
 
     .field-group label {
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 12px;
+      font-weight: 400;
       color: var(--text-muted);
     }
 
@@ -1661,6 +1676,7 @@
       border-radius: 8px;
       padding: 8px 10px;
       font-size: 13px;
+      font-weight: 400;
       color: var(--text-main);
       user-select: text;
     }
@@ -1690,8 +1706,8 @@
       border: none;
       border-radius: 999px;
       padding: 11px;
-      font-size: 13.5px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 400;
       cursor: pointer;
     }
 
@@ -1713,7 +1729,7 @@
       border: none;
       border-radius: 999px;
       padding: 10px;
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 400;
       cursor: pointer;
     }
@@ -1728,6 +1744,7 @@
       padding: 8px 16px;
       border-radius: 999px;
       font-size: 12px;
+      font-weight: 400;
       opacity: 0;
       pointer-events: none;
       transition: all 0.2s ease;
@@ -2252,7 +2269,7 @@
           <line x1="4" y1="12" x2="20" y2="12"/>
           <line x1="4" y1="18" x2="20" y2="18"/>
         </svg>
-        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round">
+        <svg class="tab-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="4" y1="6" x2="20" y2="6"/>
           <line x1="4" y1="12" x2="20" y2="12"/>
           <line x1="4" y1="18" x2="20" y2="18"/>
@@ -3002,6 +3019,7 @@
       showToast('Файл settings.json збережено');
     }
 
+    /* Верхній хакі-фон захоплює верхню зону (час/сповіщення/заряд), нижня навігація — суцільно біла */
     function syncShellColors(screenName) {
       const appShell = document.getElementById('app-shell');
       const metaTheme = document.getElementById('meta-theme-color');
@@ -3009,7 +3027,7 @@
       const hasBottomNav = ['loading', 'id', 'services', 'vacancies', 'menu'].includes(screenName);
 
       const shellBg = isSplash ? '#1E1E1A' : (hasBottomNav ? '#FFFFFF' : '#DDD8C4');
-      const themeColor = isSplash ? '#1E1E1A' : (hasBottomNav ? '#FFFFFF' : '#DDD8C4');
+      const themeColor = isSplash ? '#1E1E1A' : '#DDD8C4';
 
       appShell.style.backgroundColor = shellBg;
       document.documentElement.style.backgroundColor = shellBg;
