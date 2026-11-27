@@ -64,24 +64,14 @@ jobs:
 
       - name: Configure icons and Android theme
         run: |
-          # Генерируем валидные PNG-иконки из app.png через встроенный ImageMagick (convert)
+          # Копируем app.png во все папки mipmap-*dpi (без mipmap-anydpi-v26)
           if [ -f www/app.png ]; then
-            declare -A SIZES=(
-              ["mipmap-mdpi"]=48
-              ["mipmap-hdpi"]=72
-              ["mipmap-xhdpi"]=96
-              ["mipmap-xxhdpi"]=144
-              ["mipmap-xxxhdpi"]=192
-            )
-            for folder in "${!SIZES[@]}"; do
-              target_dir="android/app/src/main/res/$folder"
-              size="${SIZES[$folder]}"
-              if [ -d "$target_dir" ]; then
-                rm -f "$target_dir"/*.png "$target_dir"/*.webp
-                convert www/app.png -resize "${size}x${size}!" PNG32:"$target_dir/ic_launcher.png"
-                cp "$target_dir/ic_launcher.png" "$target_dir/ic_launcher_round.png"
-                cp "$target_dir/ic_launcher.png" "$target_dir/ic_launcher_foreground.png"
-              fi
+            for dir in android/app/src/main/res/mipmap-*dpi; do
+              [ -d "$dir" ] || continue
+              rm -f "$dir"/*.png "$dir"/*.webp
+              cp www/app.png "$dir/ic_launcher.png"
+              cp www/app.png "$dir/ic_launcher_round.png"
+              cp www/app.png "$dir/ic_launcher_foreground.png"
             done
           fi
 
