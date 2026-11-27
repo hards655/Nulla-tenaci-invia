@@ -1,0 +1,157 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Prepare Android SDK licenses
+        run: |
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Prepare web assets (www)
+        run: |
+          rm -rf www android node_modules package.json package-lock.json capacitor.config.*
+          mkdir -p www
+
+          # Копіюємо всі файли репозиторію (html, jpg, png, ico, otf, json) у www
+          find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
+
+          # Гарантуємо наявність index.html
+          if [ ! -f www/index.html ]; then
+            FIRST_HTML=$(find www -maxdepth 1 -name "*.html" | head -n 1)
+            if [ -z "$FIRST_HTML" ]; then
+              echo "Error: HTML file not found in repository root!"
+              exit 1
+            fi
+            cp "$FIRST_HTML" www/index.html
+          fi
+
+          # Виправляємо можливу помилку "- {" на "* {" у CSS
+          sed -i 's/^- {/\* {/' www/index.html
+
+      - name: Initialize Capacitor 6 and Android project
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
+          npx cap add android
+
+      - name: Configure app.ico icon and native Android bars
+        run: |
+          ICON_SRC=""
+          if [ -f www/app.ico ]; then
+            ICON_SRC="www/app.ico"
+          elif [ -f www/app.png ]; then
+            ICON_SRC="www/app.png"
+          fi
+
+          if [ -n "$ICON_SRC" ]; then
+            for dir in android/app/src/main/res/mipmap-*dpi; do
+              [ -d "$dir" ] || continue
+              rm -f "$dir"/*.png "$dir"/*.webp
+              cp "$ICON_SRC" "$dir/ic_launcher.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_round.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_foreground.png"
+            done
+          fi
+
+          cat << 'EOF' > android/app/src/main/res/values/styles.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="colorPrimary">#DDD8C4</item>
+                  <item name="colorPrimaryDark">#DDD8C4</item>
+                  <item name="colorAccent">#F38A00</item>
+                  <item name="android:windowBackground">#DDD8C4</item>
+                  <item name="android:statusBarColor">#DDD8C4</item>
+                  <item name="android:windowLightStatusBar">true</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightNavigationBar">true</item>
+              </style>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
+                  <item name="android:windowBackground">#1E1E1A</item>
+                  <item name="android:statusBarColor">#1E1E1A</item>
+                  <item name="android:windowLightStatusBar">false</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightNavigationBar">true</item>
+              </style>
+          </resources>
+          EOF
+
+          MAIN_ACTIVITY="android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java"
+          if [ -f "$MAIN_ACTIVITY" ]; then
+            python3 - << 'PYEOF'
+          path = "android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java"
+          with open(path, "r", encoding="utf-8") as f:
+              code = f.read()
+
+          injection = """
+              android.view.Window w = getWindow();
+              w.clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+              w.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+              w.setStatusBarColor(android.graphics.Color.parseColor("#DDD8C4"));
+              w.setNavigationBarColor(android.graphics.Color.parseColor("#FFFFFF"));
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                android.view.View decor = w.getDecorView();
+                int flags = decor.getSystemUiVisibility();
+                flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                  flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+                decor.setSystemUiVisibility(flags);
+              }
+          """
+          if "setNavigationBarColor" not in code and "super.onCreate(savedInstanceState);" in code:
+              code = code.replace(
+                  "super.onCreate(savedInstanceState);",
+                  "super.onCreate(savedInstanceState);" + injection,
+                  1
+              )
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(code)
+          PYEOF
+          fi
+
+          grep -n "setNavigationBarColor\|setStatusBarColor" "$MAIN_ACTIVITY" || true
+
+      - name: Sync Capacitor assets
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RezervPlus-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
