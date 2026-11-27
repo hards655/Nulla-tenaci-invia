@@ -57,9 +57,10 @@ jobs:
 
       - name: Configure Android icon and Fullscreen/Edge-to-Edge theme
         run: |
-          # Встановлюємо app.png як іконку додатку, якщо файл існує
+          # Встановлюємо app.png лише у щільні папки mipmap-*dpi (не зачіпаючи mipmap-anydpi-v26)
           if [ -f www/app.png ]; then
-            for dir in android/app/src/main/res/mipmap-*; do
+            for dir in android/app/src/main/res/mipmap-*dpi; do
+              [ -d "$dir" ] || continue
               rm -f "$dir"/*.webp "$dir"/*.png
               cp www/app.png "$dir/ic_launcher.png"
               cp www/app.png "$dir/ic_launcher_round.png"
