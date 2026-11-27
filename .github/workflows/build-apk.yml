@@ -55,8 +55,37 @@ jobs:
           npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
           npx cap add android
 
-      - name: Configure app.ico icon, fonts, theme and native MainActivity
+      - name: Unpack e-Ukraine fonts, configure icon, theme and native MainActivity
         run: |
+          mkdir -p android/app/src/main/res/font android/app/src/main/assets /tmp/e_ukraine_fonts
+
+          ZIP_SRC=""
+          if [ -f "e-Ukraine.zip" ]; then
+            ZIP_SRC="e-Ukraine.zip"
+          elif [ -f "www/e-Ukraine.zip" ]; then
+            ZIP_SRC="www/e-Ukraine.zip"
+          fi
+
+          if [ -n "$ZIP_SRC" ]; then
+            unzip -o "$ZIP_SRC" -d /tmp/e_ukraine_fonts > /dev/null 2>&1 || true
+            rm -rf /tmp/e_ukraine_fonts/__MACOSX
+            find /tmp/e_ukraine_fonts -type f \( -iname "*.otf" -o -iname "*.ttf" \) | while read -r font_file; do
+              base_name=$(basename "$font_file")
+              clean_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+              cp "$font_file" "android/app/src/main/res/font/$clean_name"
+              cp "$font_file" "www/$clean_name"
+              cp "$font_file" "android/app/src/main/assets/$clean_name"
+            done
+          fi
+
+          for f in e_ukraine_light.otf e_ukraine_regular.otf e_ukraine_medium.otf e_ukraine_bold.otf e_ukraine_thin.otf e_ukraine_ultralight.otf; do
+            if [ -f "www/$f" ]; then
+              cp "www/$f" "android/app/src/main/res/font/$f"
+            fi
+          done
+
+          ls -la android/app/src/main/res/font || true
+
           ICON_SRC=""
           if [ -f www/app.ico ]; then
             ICON_SRC="www/app.ico"
@@ -74,12 +103,6 @@ jobs:
             done
           fi
 
-          mkdir -p android/app/src/main/res/font android/app/src/main/assets
-          for f in e_ukraine_light.otf e_ukraine_regular.otf e_ukraine_medium.otf e_ukraine_bold.otf; do
-            if [ -f "www/$f" ]; then
-              cp "www/$f" "android/app/src/main/res/font/$f"
-            fi
-          done
           for asset in load.jpg image.jpg qr.jpg app.ico app.png settings.json; do
             if [ -f "www/$asset" ]; then
               cp "www/$asset" "android/app/src/main/assets/$asset"
@@ -112,7 +135,6 @@ jobs:
           cat << 'EOF' > android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java
           package ua.gov.rezervplus.app;
 
-          import android.animation.AnimatorSet;
           import android.animation.ObjectAnimator;
           import android.app.Activity;
           import android.app.AlertDialog;
@@ -138,7 +160,6 @@ jobs:
           import android.text.TextUtils;
           import android.util.TypedValue;
           import android.view.Gravity;
-          import android.view.MotionEvent;
           import android.view.View;
           import android.view.ViewGroup;
           import android.view.Window;
@@ -147,7 +168,6 @@ jobs:
           import android.widget.CheckBox;
           import android.widget.EditText;
           import android.widget.FrameLayout;
-          import android.widget.HorizontalScrollView;
           import android.widget.ImageView;
           import android.widget.LinearLayout;
           import android.widget.ScrollView;
@@ -185,6 +205,8 @@ jobs:
               private static final int COL_BTN_DARK = Color.parseColor("#2B2A25");
               private static final int COL_GREEN = Color.parseColor("#4C8C4A");
 
+              private Typeface fontUltraLight;
+              private Typeface fontThin;
               private Typeface fontLight;
               private Typeface fontRegular;
               private Typeface fontMedium;
@@ -232,16 +254,18 @@ jobs:
               private ImageView activePhotoView;
               private ImageView activeQrView;
               private TextView activeTickerView;
-              private View activeTickerStrip;
+              private FrameLayout activeTickerStrip;
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  fontLight = loadFont(R.font.e_ukraine_light, Typeface.NORMAL);
-                  fontRegular = loadFont(R.font.e_ukraine_regular, Typeface.NORMAL);
-                  fontMedium = loadFont(R.font.e_ukraine_medium, Typeface.NORMAL);
-                  fontBold = loadFont(R.font.e_ukraine_bold, Typeface.BOLD);
+                  fontUltraLight = loadFontByName("e_ukraine_ultralight", Typeface.NORMAL);
+                  fontThin = loadFontByName("e_ukraine_thin", Typeface.NORMAL);
+                  fontLight = loadFontByName("e_ukraine_light", Typeface.NORMAL);
+                  fontRegular = loadFontByName("e_ukraine_regular", Typeface.NORMAL);
+                  fontMedium = loadFontByName("e_ukraine_medium", Typeface.NORMAL);
+                  fontBold = loadFontByName("e_ukraine_bold", Typeface.BOLD);
 
                   prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
                   loadSavedState();
@@ -276,10 +300,13 @@ jobs:
                   showScreen("splash");
               }
 
-              private Typeface loadFont(int resId, int fallbackStyle) {
+              private Typeface loadFontByName(String fontName, int fallbackStyle) {
                   try {
-                      Typeface tf = ResourcesCompat.getFont(this, resId);
-                      if (tf != null) return tf;
+                      int resId = getResources().getIdentifier(fontName, "font", getPackageName());
+                      if (resId != 0) {
+                          Typeface tf = ResourcesCompat.getFont(this, resId);
+                          if (tf != null) return tf;
+                      }
                   } catch (Exception ignored) {
                   }
                   return Typeface.create(Typeface.SANS_SERIF, fallbackStyle);
@@ -371,12 +398,6 @@ jobs:
                   return Math.round(TypedValue.applyDimension(
                           TypedValue.COMPLEX_UNIT_DIP, val, getResources().getDisplayMetrics()
                   ));
-              }
-
-              private float sp(float val) {
-                  return TypedValue.applyDimension(
-                          TypedValue.COMPLEX_UNIT_SP, val, getResources().getDisplayMetrics()
-                  );
               }
 
               private GradientDrawable makeRoundBg(int fillColor, float radiusDp, int strokeColor, int strokeDp) {
@@ -847,7 +868,7 @@ jobs:
                   LinearLayout nameCol = new LinearLayout(this);
                   nameCol.setOrientation(LinearLayout.VERTICAL);
                   nameCol.setGravity(Gravity.BOTTOM);
-                  FrameLayout.LayoutParams ncLp = new FrameLayout.LayoutParams(
+                  FrameLayout.LayoutParams ncLp = new LinearLayout.LayoutParams(
                           ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
                   );
                   ncLp.rightMargin = dp(56);
@@ -879,7 +900,7 @@ jobs:
                   fab.setTextColor(COL_TEXT);
                   fab.setGravity(Gravity.CENTER);
                   fab.setBackground(makeRoundBg(COL_ORANGE, 24, 0, 0));
-                  FrameLayout.LayoutParams fabLp = new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.BOTTOM | Gravity.END);
+                  FrameLayout.LayoutParams fabLp = new LinearLayout.LayoutParams(dp(48), dp(48), Gravity.BOTTOM | Gravity.END);
                   fab.setLayoutParams(fabLp);
                   fab.setOnClickListener(v -> openDocumentActionsDialog());
 
