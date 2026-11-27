@@ -28,6 +28,46 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Cache Gradle dependencies and wrapper
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-cap6-agp821-${{ hashFiles('.github/workflows/build-apk.yml') }}
+          restore-keys: |
+            gradle-cap6-agp821-
+
+      - name: Configure Maven Central mirror to avoid HTTP 429
+        run: |
+          mkdir -p ~/.gradle/init.d
+          cat << 'EOF' > ~/.gradle/init.d/maven-mirror.gradle
+          allprojects {
+              buildscript {
+                  repositories {
+                      all { artifactRepository ->
+                          if (artifactRepository instanceof MavenArtifactRepository) {
+                              def urlStr = artifactRepository.url.toString()
+                              if (urlStr.startsWith("https://repo.maven.apache.org/maven2") || urlStr.startsWith("https://repo1.maven.org/maven2")) {
+                                  artifactRepository.url = uri("https://maven-central.storage-download.googleapis.com/maven2/")
+                              }
+                          }
+                      }
+                  }
+              }
+              repositories {
+                  all { artifactRepository ->
+                      if (artifactRepository instanceof MavenArtifactRepository) {
+                          def urlStr = artifactRepository.url.toString()
+                          if (urlStr.startsWith("https://repo.maven.apache.org/maven2") || urlStr.startsWith("https://repo1.maven.org/maven2")) {
+                              artifactRepository.url = uri("https://maven-central.storage-download.googleapis.com/maven2/")
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
+
       - name: Prepare Android SDK licenses
         run: |
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
@@ -53,7 +93,6 @@ jobs:
             rm -f "www/e-Ukraine.zip"
           fi
 
-          # Створюємо прості вигадані заглушки для відсутніх медіафайлів, щоб ви могли замінити їх своїми
           python3 - << 'PYEOF'
           import os, struct, zlib
 
