@@ -43,16 +43,8 @@
       background_color: '#DDD8C4',
       theme_color: '#DDD8C4',
       icons: [
-        {
-          src: iconUrl,
-          sizes: '192x192',
-          type: 'image/x-icon'
-        },
-        {
-          src: iconUrl,
-          sizes: '512x512',
-          type: 'image/x-icon'
-        }
+        { src: iconUrl, sizes: '192x192', type: 'image/x-icon' },
+        { src: iconUrl, sizes: '512x512', type: 'image/x-icon' }
       ]
     };
 
@@ -70,12 +62,9 @@
 
     async function installApp() {
       if (!deferredPrompt) return;
-
       const prompt = deferredPrompt;
       deferredPrompt = null;
-
       updateInstallButtonState();
-
       await prompt.prompt();
     }
 
@@ -87,9 +76,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       const v = Date.now();
       const appleIcon = document.getElementById('apple-touch-icon');
-      if (appleIcon) {
-        appleIcon.href = `${iconUrl}?v=${v}`;
-      }
+      if (appleIcon) appleIcon.href = `${iconUrl}?v=${v}`;
       updateInstallButtonState();
     });
   </script>
@@ -131,8 +118,8 @@
 
     :root {
       --app-font: 'e-Ukraine', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --bg-beige: #DDD8C4;
-      --bg-card-beige: #D5D0BC;
+      --bg-khaki: #DDD8C4;
+      --bg-card-khaki: #D5D0BC;
       --bg-dark: #1E1E1A;
       --text-main: #181815;
       --text-muted: #5C594E;
@@ -141,8 +128,8 @@
       --ticker-yellow: #F9E255;
       --alert-red: #C93B1B;
       --card-white: #FFFFFF;
-      --border-beige: #B9B39E;
-      --divider-beige: #C8C2AE;
+      --border-khaki: #B9B39E;
+      --divider-khaki: #C8C2AE;
       --success-green: #4C8C4A;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -331,7 +318,7 @@
       width: 100%;
       height: 100dvh;
       max-height: 100dvh;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
       font-family: var(--app-font);
       font-weight: 400;
       overflow: hidden;
@@ -347,7 +334,7 @@
       width: 100%;
       height: 100dvh;
       max-height: 100dvh;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -370,28 +357,15 @@
     }
 
     @keyframes slideInFromRight {
-      from {
-        opacity: 0.4;
-        transform: translateX(24px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+      from { opacity: 0.4; transform: translateX(24px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
     @keyframes slideInFromLeft {
-      from {
-        opacity: 0.4;
-        transform: translateX(-24px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+      from { opacity: 0.4; transform: translateX(-24px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
-    /* Фон хакі зверху захоплює всю верхню зону включно зі статус-баром */
     .screen {
       display: none;
       flex: 1;
@@ -399,7 +373,7 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
       padding-top: var(--safe-top);
       padding-bottom: 0;
       will-change: transform, opacity;
@@ -413,13 +387,13 @@
     }
 
     #screen-pin {
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
       padding: calc(var(--safe-top) + 18px) 24px calc(var(--safe-bottom) + 22px);
       justify-content: space-between;
     }
 
     #screen-full-info {
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
       padding: var(--safe-top) 16px calc(var(--safe-bottom) + 12px);
       display: none;
       flex-direction: column;
@@ -483,7 +457,6 @@
       padding: 0 8px;
     }
 
-    /* Цифри PIN 0–9: e-Ukraine Regular 400, 32px */
     .num-btn {
       width: clamp(66px, 19vw, 78px);
       height: clamp(66px, 19vw, 78px);
@@ -522,10 +495,9 @@
       justify-content: flex-end;
       padding: 10px 22px 14px;
       flex-shrink: 0;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
     }
 
-    /* «Сповіщення» — Regular 400, 13px */
     .notif-pill {
       background-color: #FFFFFF;
       border: none;
@@ -552,7 +524,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
     }
 
     .loading-card {
@@ -617,8 +589,8 @@
       height: 100%;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      background-color: var(--bg-card-beige);
-      border: 1px solid var(--border-beige);
+      background-color: var(--bg-card-khaki);
+      border: 1px solid var(--border-khaki);
       border-radius: 14px;
       overflow: hidden;
       display: flex;
@@ -728,7 +700,6 @@
       align-items: center;
     }
 
-    /* Заголовок документа — Regular 400, 28px, міжлітерний інтервал -1px */
     .id-header-row h2 {
       font-size: 28px;
       font-weight: 400;
@@ -771,7 +742,6 @@
       padding-top: 2px;
     }
 
-    /* Підписи полів документа — Regular 400, 13px */
     .meta-group span {
       display: block;
       font-size: 13px;
@@ -1156,7 +1126,6 @@
       cursor: pointer;
     }
 
-    /* Посилання на повідомлення про обробку персональних даних — Light 300, 12px */
     .privacy-link {
       text-align: center;
       font-size: 12px;
@@ -1191,7 +1160,6 @@
       margin-bottom: 8px;
     }
 
-    /* Заголовок «Вакансії» — Regular 400, 28px */
     .vac-content h1 {
       font-size: 28px;
       font-weight: 400;
@@ -1214,7 +1182,7 @@
       gap: 14px;
       padding-top: 8px;
       flex-shrink: 0;
-      background-color: var(--bg-beige);
+      background-color: var(--bg-khaki);
     }
 
     .checkbox-row {
@@ -1278,7 +1246,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 17px 0;
-      border-bottom: 1px solid var(--divider-beige);
+      border-bottom: 1px solid var(--divider-khaki);
       font-size: 16px;
       font-weight: 400;
       color: var(--text-main);
@@ -1294,7 +1262,7 @@
       border-bottom: none;
     }
 
-    /* Суцільний білий фон внизу повністю перекриває кнопки та навігаційну зону */
+    /* Суцільний білий фон внизу перекриває нижню зону та системну навігацію */
     .bottom-tabs {
       width: 100%;
       flex-shrink: 0;
@@ -1319,7 +1287,6 @@
       display: grid;
     }
 
-    /* Неактивні підписи: e-Ukraine Regular 400, 11px; іконка над підписом */
     .tab-btn {
       display: flex;
       flex-direction: column;
@@ -1357,7 +1324,6 @@
       display: block;
     }
 
-    /* Активний підпис: e-Ukraine Medium 500, 11px */
     .tab-btn.active {
       color: #181815;
       font-weight: 500;
@@ -2461,7 +2427,7 @@
     </div>
   </div>
 
-  <!-- ==================== ІНСПЕКТОР ЕЛЕМЕНТА З БІЧНИМИ ТА ВЕРТИКАЛЬНИМИ РУЧКАМИ ==================== -->
+  <!-- ==================== ІНСПЕКТОР ЕЛЕМЕНТА ==================== -->
   <div id="resize-overlay" class="component-inspector-box">
     <div id="inspector-caption-badge" class="inspector-caption-badge"></div>
     <div id="inspector-size-badge" class="inspector-size-badge"></div>
@@ -2680,9 +2646,7 @@
       if (inlineEditEnabled || layoutEditMode) return;
       isCardFlipped = !isCardFlipped;
       const inner = document.getElementById('id-flip-inner');
-      if (inner) {
-        inner.classList.toggle('flipped', isCardFlipped);
-      }
+      if (inner) inner.classList.toggle('flipped', isCardFlipped);
     }
 
     function applyFontSettings() {
@@ -2791,9 +2755,7 @@
         appData.ticker = formatCurrentDateTime();
         persistData();
 
-        if (tickerStrip) {
-          tickerStrip.classList.remove('updating-mode');
-        }
+        if (tickerStrip) tickerStrip.classList.remove('updating-mode');
         applyDataToUI();
         showToast('Документ оновлено');
       }, 10000);
@@ -2802,9 +2764,7 @@
     function applyCustomLayouts() {
       const appShell = document.getElementById('app-shell');
       const gScale = Number(appData.globalScale) || 100;
-      if (appShell) {
-        appShell.style.zoom = (gScale / 100);
-      }
+      if (appShell) appShell.style.zoom = (gScale / 100);
 
       const layouts = appData.customLayouts || {};
       document.querySelectorAll('[data-ui-id]').forEach(el => {
@@ -2881,12 +2841,8 @@
       const hasAlert = Boolean(appData.topAlert && appData.topAlert.trim());
       const alertBanner = document.getElementById('id-alert-banner');
       const tickerStrip = document.getElementById('ticker-strip');
-      if (alertBanner) {
-        alertBanner.classList.toggle('hidden', !hasAlert);
-      }
-      if (tickerStrip) {
-        tickerStrip.classList.toggle('alert-mode', hasAlert);
-      }
+      if (alertBanner) alertBanner.classList.toggle('hidden', !hasAlert);
+      if (tickerStrip) tickerStrip.classList.toggle('alert-mode', hasAlert);
 
       const deferralBlock = document.getElementById('deferral-block');
       if (deferralBlock) {
@@ -2912,20 +2868,12 @@
       const activeQrSrc = getActiveQrSource();
       const qrContainer = document.getElementById('qr-code-container');
       if (qrContainer) {
-        if (activeQrSrc) {
-          qrContainer.innerHTML = `<img src="${activeQrSrc}" alt="QR-код">`;
-        } else {
-          qrContainer.innerHTML = defaultQrSVG();
-        }
+        qrContainer.innerHTML = activeQrSrc ? `<img src="${activeQrSrc}" alt="QR-код">` : defaultQrSVG();
       }
 
       const qrPreview = document.getElementById('editor-qr-preview');
       if (qrPreview) {
-        if (activeQrSrc) {
-          qrPreview.innerHTML = `<img src="${activeQrSrc}" alt="QR">`;
-        } else {
-          qrPreview.innerHTML = defaultQrSVG();
-        }
+        qrPreview.innerHTML = activeQrSrc ? `<img src="${activeQrSrc}" alt="QR">` : defaultQrSVG();
       }
 
       const splashImg = document.getElementById('splash-custom-img');
@@ -2946,7 +2894,7 @@
     async function initAppStorage() {
       let hasLocal = false;
       try {
-        const raw = localStorage.getItem('rezerv_ui_data_v21');
+        const raw = localStorage.getItem('rezerv_ui_data_v22');
         if (raw) {
           const parsed = JSON.parse(raw);
           appData = {
@@ -2975,25 +2923,13 @@
       }
 
       const imgProbe = new Image();
-      imgProbe.onload = () => {
-        githubImageAvailable = true;
-        applyDataToUI();
-      };
-      imgProbe.onerror = () => {
-        githubImageAvailable = false;
-        applyDataToUI();
-      };
+      imgProbe.onload = () => { githubImageAvailable = true; applyDataToUI(); };
+      imgProbe.onerror = () => { githubImageAvailable = false; applyDataToUI(); };
       imgProbe.src = 'image.jpg?v=' + CACHE_BUSTER;
 
       const qrProbe = new Image();
-      qrProbe.onload = () => {
-        githubQrAvailable = true;
-        applyDataToUI();
-      };
-      qrProbe.onerror = () => {
-        githubQrAvailable = false;
-        applyDataToUI();
-      };
+      qrProbe.onload = () => { githubQrAvailable = true; applyDataToUI(); };
+      qrProbe.onerror = () => { githubQrAvailable = false; applyDataToUI(); };
       qrProbe.src = 'qr.jpg?v=' + CACHE_BUSTER;
 
       applyDataToUI();
@@ -3001,7 +2937,7 @@
 
     function persistData() {
       try {
-        localStorage.setItem('rezerv_ui_data_v21', JSON.stringify(appData));
+        localStorage.setItem('rezerv_ui_data_v22', JSON.stringify(appData));
       } catch (e) {}
     }
 
@@ -3019,7 +2955,6 @@
       showToast('Файл settings.json збережено');
     }
 
-    /* Верхній хакі-фон захоплює верхню зону (час/сповіщення/заряд), нижня навігація — суцільно біла */
     function syncShellColors(screenName) {
       const appShell = document.getElementById('app-shell');
       const metaTheme = document.getElementById('meta-theme-color');
@@ -3057,9 +2992,7 @@
         const isTarget = sec.id === 'screen-' + name;
         sec.classList.remove('slide-left');
         if (isTarget) {
-          if (moveBackward) {
-            sec.classList.add('slide-left');
-          }
+          if (moveBackward) sec.classList.add('slide-left');
           void sec.offsetWidth;
           sec.classList.add('active');
         } else {
@@ -3082,20 +3015,16 @@
         bottomTabs.classList.remove('visible');
       } else {
         bottomTabs.classList.add('visible');
-
         const activeTabName = (name === 'loading') ? 'id' : name;
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.target === activeTabName);
         });
-
         if (name === 'loading') {
           autoTimer = setTimeout(() => goToScreen('id'), 1800);
         }
       }
 
-      if (layoutEditMode) {
-        setTimeout(updateResizeOverlay, 30);
-      }
+      if (layoutEditMode) setTimeout(updateResizeOverlay, 30);
     }
 
     function handleCardClick() {
@@ -3119,7 +3048,6 @@
       if (pinBuffer.length >= 4) return;
       pinBuffer += String(num);
       updatePinDots();
-
       if (pinBuffer.length === 4) {
         setTimeout(() => goToScreen('loading'), 220);
       }
@@ -3133,9 +3061,7 @@
 
     function updatePinDots() {
       const dots = document.querySelectorAll('#pin-dots .pin-dot');
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle('filled', idx < pinBuffer.length);
-      });
+      dots.forEach((dot, idx) => dot.classList.toggle('filled', idx < pinBuffer.length));
     }
 
     function toggleSheet(open) {
@@ -3153,9 +3079,7 @@
       toast.textContent = text;
       toast.classList.add('show');
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-      }, 1800);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 1800);
     }
 
     function startLayoutEditMode() {
@@ -3225,13 +3149,8 @@
         return;
       }
 
-      if (badge) {
-        badge.textContent = getElementCaption(selectedUiId, targetEl.dataset.defaultName || selectedUiId);
-      }
-
-      if (sizeBadge) {
-        sizeBadge.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
-      }
+      if (badge) badge.textContent = getElementCaption(selectedUiId, targetEl.dataset.defaultName || selectedUiId);
+      if (sizeBadge) sizeBadge.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
 
       overlay.style.left = rect.left + 'px';
       overlay.style.top = rect.top + 'px';
@@ -3239,9 +3158,7 @@
       overlay.style.height = rect.height + 'px';
       overlay.classList.add('visible');
 
-      const nearBottom = rect.bottom > window.innerHeight - 95;
-      pill.classList.toggle('place-top', nearBottom);
-
+      pill.classList.toggle('place-top', rect.bottom > window.innerHeight - 95);
       syncMiniSliderToSelected();
     }
 
@@ -3249,11 +3166,9 @@
       document.querySelectorAll('.layout-selected').forEach(item => item.classList.remove('layout-selected'));
       el.classList.add('layout-selected');
       selectedUiId = el.dataset.uiId;
-
       if (!appData.customLayouts[selectedUiId]) {
         appData.customLayouts[selectedUiId] = { x: 0, y: 0, scale: 1 };
       }
-
       updateResizeOverlay();
     }
 
@@ -3263,9 +3178,7 @@
         return;
       }
       delete appData.customLayouts[selectedUiId];
-      if (appData.elementCaptions) {
-        delete appData.elementCaptions[selectedUiId];
-      }
+      if (appData.elementCaptions) delete appData.elementCaptions[selectedUiId];
       applyElementCaptions();
       applyCustomLayouts();
       updateResizeOverlay();
@@ -3300,8 +3213,8 @@
           origH: Math.round(rect.height / (gScale * elScale)),
           origX: cfg.x || 0,
           origY: cfg.y || 0,
-          gScale: gScale,
-          elScale: elScale
+          gScale,
+          elScale
         };
         return;
       }
@@ -3317,20 +3230,17 @@
 
       e.preventDefault();
       e.stopPropagation();
-
       selectLayoutElement(targetEl);
 
       const id = targetEl.dataset.uiId;
       const cfg = appData.customLayouts[id] || { x: 0, y: 0, scale: 1 };
-      const gScale = (Number(appData.globalScale) || 100) / 100;
-
       moveState = {
-        id: id,
+        id,
         startX: e.clientX,
         startY: e.clientY,
         origX: cfg.x || 0,
         origY: cfg.y || 0,
-        gScale: gScale
+        gScale: (Number(appData.globalScale) || 100) / 100
       };
     }, true);
 
@@ -3346,18 +3256,14 @@
         if (!cfg) return;
 
         const dir = resizeState.dir;
-        if (dir === 'right' || dir === 'corner') {
-          cfg.w = Math.max(24, Math.round(resizeState.origW + dx));
-        }
+        if (dir === 'right' || dir === 'corner') cfg.w = Math.max(24, Math.round(resizeState.origW + dx));
         if (dir === 'left') {
           const newW = Math.max(24, Math.round(resizeState.origW - dx));
           const diffW = resizeState.origW - newW;
           cfg.w = newW;
           cfg.x = Math.round(resizeState.origX + diffW * resizeState.elScale);
         }
-        if (dir === 'bottom' || dir === 'corner') {
-          cfg.h = Math.max(20, Math.round(resizeState.origH + dy));
-        }
+        if (dir === 'bottom' || dir === 'corner') cfg.h = Math.max(20, Math.round(resizeState.origH + dy));
         if (dir === 'top') {
           const newH = Math.max(20, Math.round(resizeState.origH - dy));
           const diffH = resizeState.origH - newH;
@@ -3383,16 +3289,8 @@
     }, { passive: false });
 
     document.addEventListener('pointerup', () => {
-      if (resizeState) {
-        resizeState = null;
-        persistData();
-        updateResizeOverlay();
-      }
-      if (moveState) {
-        moveState = null;
-        persistData();
-        updateResizeOverlay();
-      }
+      if (resizeState) { resizeState = null; persistData(); updateResizeOverlay(); }
+      if (moveState) { moveState = null; persistData(); updateResizeOverlay(); }
     });
 
     window.addEventListener('resize', () => {
@@ -3402,17 +3300,13 @@
     function handleCopyDeviceClick() {
       copyTapCount++;
       clearTimeout(copyTapTimer);
-
       if (copyTapCount >= 4) {
         copyTapCount = 0;
         openEditor();
         return;
       }
-
       showToast('Номер пристрою скопійовано');
-      copyTapTimer = setTimeout(() => {
-        copyTapCount = 0;
-      }, 2500);
+      copyTapTimer = setTimeout(() => { copyTapCount = 0; }, 2500);
     }
 
     function openEditor() {
@@ -3424,7 +3318,6 @@
       });
 
       renderCaptionsListInEditor();
-
       const fontSel = document.getElementById('inp-fontFamily');
       if (fontSel) fontSel.value = appData.fontFamily || 'e-Ukraine';
 
@@ -3494,7 +3387,7 @@
 
     function resetAppData() {
       appData = { ...defaultData, customLayouts: {}, elementCaptions: {} };
-      localStorage.removeItem('rezerv_ui_data_v21');
+      localStorage.removeItem('rezerv_ui_data_v22');
       applyDataToUI();
       openEditor();
       showToast('Дані, QR, шрифт, колонтитули та розміри скинуто');
