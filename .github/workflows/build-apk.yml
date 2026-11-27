@@ -39,7 +39,7 @@ jobs:
           rm -rf www android node_modules package.json package-lock.json capacitor.config.*
           mkdir -p www
 
-          # Копируем все файлы репозиторія (html, jpg, png, otf, json, ico) в www
+          # Копируем все файлы репозитория (html, jpg, png, otf, json, ico) в www
           find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
 
           # Гарантируем наличие index.html
@@ -52,7 +52,7 @@ jobs:
             cp "$FIRST_HTML" www/index.html
           fi
 
-          # Автоматически чиним опечатку "- {" на "* {" в CSS, если она осталась
+          # Автоматически чиним опечатку "- {" на "* {" в CSS
           sed -i 's/^- {/\* {/' www/index.html
 
       - name: Initialize Capacitor 6 and Android project
@@ -64,31 +64,25 @@ jobs:
 
       - name: Configure icons and Android theme
         run: |
-          # Генерируем валидные PNG-иконки из app.png без конфликта с mipmap-anydpi-v26
+          # Генерируем валидные PNG-иконки из app.png через встроенный ImageMagick (convert)
           if [ -f www/app.png ]; then
-            python3 - << 'EOF'
-          from PIL import Image
-          import os
-
-          img = Image.open("www/app.png").convert("RGBA")
-          sizes = {
-              "mipmap-mdpi": 48,
-              "mipmap-hdpi": 72,
-              "mipmap-xhdpi": 96,
-              "mipmap-xxhdpi": 144,
-              "mipmap-xxxhdpi": 192,
-          }
-          for folder, size in sizes.items():
-              target_dir = os.path.join("android/app/src/main/res", folder)
-              if os.path.isdir(target_dir):
-                  for f in os.listdir(target_dir):
-                      if f.endswith((".png", ".webp")):
-                          os.remove(os.path.join(target_dir, f))
-                  resized = img.resize((size, size), Image.LANCZOS)
-                  resized.save(os.path.join(target_dir, "ic_launcher.png"), "PNG")
-                  resized.save(os.path.join(target_dir, "ic_launcher_round.png"), "PNG")
-                  resized.save(os.path.join(target_dir, "ic_launcher_foreground.png"), "PNG")
-          EOF
+            declare -A SIZES=(
+              ["mipmap-mdpi"]=48
+              ["mipmap-hdpi"]=72
+              ["mipmap-xhdpi"]=96
+              ["mipmap-xxhdpi"]=144
+              ["mipmap-xxxhdpi"]=192
+            )
+            for folder in "${!SIZES[@]}"; do
+              target_dir="android/app/src/main/res/$folder"
+              size="${SIZES[$folder]}"
+              if [ -d "$target_dir" ]; then
+                rm -f "$target_dir"/*.png "$target_dir"/*.webp
+                convert www/app.png -resize "${size}x${size}!" PNG32:"$target_dir/ic_launcher.png"
+                cp "$target_dir/ic_launcher.png" "$target_dir/ic_launcher_round.png"
+                cp "$target_dir/ic_launcher.png" "$target_dir/ic_launcher_foreground.png"
+              fi
+            done
           fi
 
           # Настраиваем цвета статус-бара и нижней панели навигации
