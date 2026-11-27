@@ -1,4 +1,4 @@
-name: Build Android APK v2.0
+name: Build Android APK v3.0
 
 on:
   push:
@@ -74,17 +74,12 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      - name: Prepare clean web assets (www), fonts and v2.0 dimensions without preset data
+      - name: Prepare web assets (www), embedded v3.0 fictional data, fonts and dimensions
         run: |
           rm -rf www android node_modules package.json package-lock.json capacitor.config.* /tmp/e_ukraine_fonts
           mkdir -p www /tmp/e_ukraine_fonts
 
-          # Копіюємо лише файли веб-інтерфейсу та медіа, без налаштувань із даними
-          for f in index.html style.css styles.css app.js main.js load.jpg image.jpg qr.jpg app.ico app.png e-Ukraine.zip; do
-            if [ -f "$f" ]; then
-              cp "$f" "www/$f"
-            fi
-          done
+          find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
 
           if [ -f "www/e-Ukraine.zip" ]; then
             unzip -o "www/e-Ukraine.zip" -d /tmp/e_ukraine_fonts > /dev/null 2>&1 || true
@@ -96,61 +91,6 @@ jobs:
               cp "$font_file" "www/$clean_name"
             done
             rm -f "www/e-Ukraine.zip"
-          fi
-
-          # Порожні медіа-заглушки без жодних даних і написів
-          python3 - << 'PYEOF'
-          import os, struct, zlib
-
-          def write_png(path, width, height, rgba):
-              def chunk(tag, data):
-                  return struct.pack("!I", len(data)) + tag + data + struct.pack("!I", zlib.crc32(tag + data) & 0xffffffff)
-              raw = bytearray()
-              r, g, b, a = rgba
-              row = bytes([r, g, b, a]) * width
-              for _ in range(height):
-                  raw.append(0)
-                  raw.extend(row)
-              ihdr = struct.pack("!IIBBBBB", width, height, 8, 6, 0, 0, 0)
-              idat = zlib.compress(bytes(raw), level=6)
-              png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
-              with open(path, "wb") as f:
-                  f.write(png)
-
-          def write_ico_from_png(png_path, ico_path):
-              with open(png_path, "rb") as f:
-                  img = f.read()
-              header = struct.pack("<HHH", 0, 1, 1)
-              entry = struct.pack("<BBBBHHII", 1, 1, 0, 0, 1, 32, len(img), 22)
-              with open(ico_path, "wb") as f:
-                  f.write(header + entry + img)
-
-          os.makedirs("www", exist_ok=True)
-          if not os.path.exists("www/load.jpg") and not os.path.exists("www/load.png"):
-              write_png("www/load.png", 16, 16, (221, 216, 196, 255))
-          if not os.path.exists("www/image.jpg") and not os.path.exists("www/image.png"):
-              write_png("www/image.png", 16, 16, (213, 208, 188, 255))
-          if not os.path.exists("www/qr.jpg") and not os.path.exists("www/qr.png"):
-              write_png("www/qr.png", 16, 16, (255, 255, 255, 255))
-          if not os.path.exists("www/app.ico") and not os.path.exists("www/app.png"):
-              write_png("www/app.png", 32, 32, (221, 216, 196, 255))
-              write_ico_from_png("www/app.png", "www/app.ico")
-          PYEOF
-
-          if [ ! -f www/index.html ]; then
-            cat << 'HTMLEOF' > www/index.html
-          <!DOCTYPE html>
-          <html lang="uk">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-            <title>App</title>
-          </head>
-          <body>
-            <div id="root"></div>
-          </body>
-          </html>
-          HTMLEOF
           fi
 
           cat << 'EOF' > www/rezerv-v2-dimensions.css
@@ -179,8 +119,78 @@ jobs:
           }
           EOF
 
-          if grep -q "</head>" www/index.html; then
-            sed -i 's|</head>|<link rel="stylesheet" href="./rezerv-v2-dimensions.css">\n</head>|' www/index.html
+          cat << 'EOF' > www/app-data-v3.js
+          window.RESERV_V3_DATA = Object.freeze({
+            version: "3.0",
+            documentTitle: "Резерв ID",
+            statusBanner: "ТЕСТОВА ІНФОРМАЦІЯ\nВИГАДАНИЙ ЗАПИС №000-000",
+            birthDateLabel: "Дата народження:",
+            birthDateValue: "14.07.1995",
+            tickerText: "Документ оновлено о 12:00 | 01.01.2026",
+            role: "Військовозобов’язаний",
+            fullName: "Коваленко\nТарас\nОлегович",
+            unitName: "Вигаданий ТЦК №000 (Тестовий район)",
+            registryCode: "000000000000000000000",
+            photoSrc: "./image.jpg",
+            qrSrc: "./qr.jpg",
+            splashSrc: "./load.jpg"
+          });
+
+          document.addEventListener("DOMContentLoaded", function () {
+            const d = window.RESERV_V3_DATA;
+            if (!d) return;
+
+            const setText = (sel, val) => {
+              const el = document.querySelector(sel);
+              if (el && (el.textContent || "").trim() === "") {
+                el.textContent = val;
+              }
+            };
+
+            setText('[data-rp="doc-title"]', d.documentTitle);
+            setText('[data-rp="birth-label"]', d.birthDateLabel);
+            setText('[data-rp="birth-value"]', d.birthDateValue);
+            setText('[data-rp="ticker"]', d.tickerText);
+            setText('[data-rp="role"]', d.role);
+            setText('[data-rp="full-name"]', d.fullName);
+            setText('[data-rp="unit-name"]', d.unitName);
+            setText('[data-rp="registry-code"]', d.registryCode);
+          });
+          EOF
+
+          if [ ! -f www/index.html ]; then
+            cat << 'HTMLEOF' > www/index.html
+          <!DOCTYPE html>
+          <html lang="uk">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+            <meta name="theme-color" content="#DDD8C4">
+            <title>Резерв+ v3.0</title>
+            <link rel="stylesheet" href="./rezerv-v2-dimensions.css">
+            <script src="./app-data-v3.js" defer></script>
+          </head>
+          <body>
+            <main id="app">
+              <div class="doc-card">
+                <div class="doc-alert">ТЕСТОВА ІНФОРМАЦІЯ<br>ВИГАДАНИЙ ЗАПИС №000-000</div>
+                <div class="doc-header" data-rp="doc-title">Резерв ID</div>
+                <div class="doc-meta">
+                  <span data-rp="birth-label">Дата народження:</span>
+                  <strong data-rp="birth-value">14.07.1995</strong>
+                </div>
+                <div class="doc-ticker" data-rp="ticker">Документ оновлено о 12:00 | 01.01.2026</div>
+                <div class="doc-role" data-rp="role">Військовозобов’язаний</div>
+                <div class="doc-person" data-rp="full-name">Коваленко<br>Тарас<br>Олегович</div>
+              </div>
+            </main>
+          </body>
+          </html>
+          HTMLEOF
+          else
+            if grep -q "</head>" www/index.html; then
+              sed -i 's|</head>|<link rel="stylesheet" href="./rezerv-v2-dimensions.css">\n<script src="./app-data-v3.js" defer></script>\n</head>|' www/index.html
+            fi
           fi
 
           ls -la www
@@ -189,10 +199,10 @@ jobs:
         run: |
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          npx cap init "App" "com.example.app.v2" --web-dir=www
+          npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
           npx cap add android
 
-      - name: Configure app icon, system bars and WebView MainActivity v2.0
+      - name: Configure app icon, system bars and WebView MainActivity v3.0
         run: |
           mkdir -p android/app/src/main/res/font
 
@@ -242,8 +252,8 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > android/app/src/main/java/com/example/app/v2/MainActivity.java
-          package com.example.app.v2;
+          cat << 'EOF' > android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java
+          package ua.gov.rezervplus.app;
 
           import android.graphics.Color;
           import android.os.Build;
@@ -320,6 +330,6 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: App-APK-v2.0
+          name: RezervPlus-APK-v3.0
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
