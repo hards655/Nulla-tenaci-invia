@@ -39,10 +39,10 @@ jobs:
           rm -rf www android node_modules package.json package-lock.json capacitor.config.*
           mkdir -p www
 
-          # Копируем все файлы репозитория (html, jpg, png, otf, json, ico) в www
+          # Копіюємо всі файли репозиторію (html, jpg, png, ico, otf, json) у www
           find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
 
-          # Гарантируем наличие index.html
+          # Гарантуємо наявність index.html
           if [ ! -f www/index.html ]; then
             FIRST_HTML=$(find www -maxdepth 1 -name "*.html" | head -n 1)
             if [ -z "$FIRST_HTML" ]; then
@@ -52,7 +52,7 @@ jobs:
             cp "$FIRST_HTML" www/index.html
           fi
 
-          # Автоматически чиним опечатку "- {" на "* {" в CSS
+          # Виправляємо можливу помилку "- {" на "* {" у CSS
           sed -i 's/^- {/\* {/' www/index.html
 
       - name: Initialize Capacitor 6 and Android project
@@ -62,33 +62,45 @@ jobs:
           npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
           npx cap add android
 
-      - name: Configure icons and Android theme
+      - name: Configure app.ico icon and edge-to-edge Android theme
         run: |
-          # Копируем app.png во все папки mipmap-*dpi (без mipmap-anydpi-v26)
-          if [ -f www/app.png ]; then
+          ICON_SRC=""
+          if [ -f www/app.ico ]; then
+            ICON_SRC="www/app.ico"
+          elif [ -f www/app.png ]; then
+            ICON_SRC="www/app.png"
+          fi
+
+          if [ -n "$ICON_SRC" ]; then
             for dir in android/app/src/main/res/mipmap-*dpi; do
               [ -d "$dir" ] || continue
               rm -f "$dir"/*.png "$dir"/*.webp
-              cp www/app.png "$dir/ic_launcher.png"
-              cp www/app.png "$dir/ic_launcher_round.png"
-              cp www/app.png "$dir/ic_launcher_foreground.png"
+              cp "$ICON_SRC" "$dir/ic_launcher.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_round.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_foreground.png"
             done
           fi
 
-          # Настраиваем цвета статус-бара и нижней панели навигации
+          # Прозорий/хакі статус-бар зверху та білий навігаційний бар внизу
           cat << 'EOF' > android/app/src/main/res/values/styles.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
                   <item name="colorPrimary">#DDD8C4</item>
-                  <item name="colorPrimaryDark">#1E1E1A</item>
+                  <item name="colorPrimaryDark">#DDD8C4</item>
                   <item name="colorAccent">#F38A00</item>
-                  <item name="android:windowBackground">#1E1E1A</item>
+                  <item name="android:windowBackground">#DDD8C4</item>
+                  <item name="android:statusBarColor">#DDD8C4</item>
+                  <item name="android:windowLightStatusBar">true</item>
                   <item name="android:navigationBarColor">#FFFFFF</item>
                   <item name="android:windowLightNavigationBar">true</item>
               </style>
               <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
                   <item name="android:windowBackground">#1E1E1A</item>
+                  <item name="android:statusBarColor">#1E1E1A</item>
+                  <item name="android:windowLightStatusBar">false</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightNavigationBar">true</item>
               </style>
           </resources>
           EOF
