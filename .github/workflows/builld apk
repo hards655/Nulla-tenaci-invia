@@ -1,0 +1,234 @@
+name: Build Android APK v2.0
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Prepare Android SDK licenses
+        run: |
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Prepare web assets (www), unpack e-Ukraine fonts and apply v2.0 dimensions
+        run: |
+          rm -rf www android node_modules package.json package-lock.json capacitor.config.* /tmp/e_ukraine_fonts
+          mkdir -p www /tmp/e_ukraine_fonts
+
+          find . -maxdepth 1 -type f ! -name "*.yml" ! -name "*.md" ! -name ".*" -exec cp {} www/ \;
+
+          if [ -f "www/e-Ukraine.zip" ]; then
+            unzip -o "www/e-Ukraine.zip" -d /tmp/e_ukraine_fonts > /dev/null 2>&1 || true
+            rm -rf /tmp/e_ukraine_fonts/__MACOSX
+            find /tmp/e_ukraine_fonts -type f \( -iname "*.otf" -o -iname "*.ttf" \) | while read -r font_file; do
+              base_name=$(basename "$font_file")
+              clean_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+              cp "$font_file" "www/$base_name"
+              cp "$font_file" "www/$clean_name"
+            done
+            rm -f "www/e-Ukraine.zip"
+          fi
+
+          if [ ! -f www/index.html ]; then
+            FIRST_HTML=$(find www -maxdepth 1 -name "*.html" | head -n 1)
+            if [ -n "$FIRST_HTML" ]; then
+              cp "$FIRST_HTML" www/index.html
+            else
+              echo "<html><body>Резерв+</body></html>" > www/index.html
+            fi
+          fi
+
+          cat << 'EOF' > www/rezerv-v2-dimensions.css
+          :root {
+            --rp-bg-khaki: #DDD8C4;
+            --rp-card-khaki: #D5D0BC;
+            --rp-card-border: #C5BFA9;
+            --rp-alert-red: #D8371D;
+            --rp-accent-orange: #F38A00;
+            --rp-white: #FFFFFF;
+            --rp-text-dark: #181815;
+            --rp-text-muted: #5C594E;
+            --rp-screen-pad-x: 18px;
+            --rp-card-radius: 16px;
+            --rp-photo-radius: 10px;
+            --rp-fab-size: 52px;
+            --rp-nav-height: 68px;
+          }
+
+          html, body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--rp-bg-khaki);
+            color: var(--rp-text-dark);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+          }
+          EOF
+
+          if grep -q "</head>" www/index.html; then
+            sed -i 's|</head>|<link rel="stylesheet" href="./rezerv-v2-dimensions.css">\n</head>|' www/index.html
+          fi
+
+          ls -la www
+
+      - name: Initialize Capacitor 6 and Android project
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
+          npx cap add android
+
+      - name: Configure app icon, system bars and WebView MainActivity v2.0
+        run: |
+          mkdir -p android/app/src/main/res/font
+
+          for f in www/*.otf www/*.ttf; do
+            [ -f "$f" ] || continue
+            bn=$(basename "$f" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+            cp "$f" "android/app/src/main/res/font/$bn"
+          done
+
+          ICON_SRC=""
+          if [ -f www/app.ico ]; then
+            ICON_SRC="www/app.ico"
+          elif [ -f www/app.png ]; then
+            ICON_SRC="www/app.png"
+          fi
+
+          if [ -n "$ICON_SRC" ]; then
+            for dir in android/app/src/main/res/mipmap-*dpi; do
+              [ -d "$dir" ] || continue
+              rm -f "$dir"/*.png "$dir"/*.webp
+              cp "$ICON_SRC" "$dir/ic_launcher.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_round.png"
+              cp "$ICON_SRC" "$dir/ic_launcher_foreground.png"
+            done
+          fi
+
+          cat << 'EOF' > android/app/src/main/res/values/styles.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="colorPrimary">#DDD8C4</item>
+                  <item name="colorPrimaryDark">#DDD8C4</item>
+                  <item name="colorAccent">#F38A00</item>
+                  <item name="android:windowBackground">#DDD8C4</item>
+                  <item name="android:statusBarColor">#DDD8C4</item>
+                  <item name="android:windowLightStatusBar">true</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightNavigationBar">true</item>
+              </style>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
+                  <item name="android:windowBackground">#DDD8C4</item>
+                  <item name="android:statusBarColor">#DDD8C4</item>
+                  <item name="android:windowLightStatusBar">true</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightNavigationBar">true</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java
+          package ua.gov.rezervplus.app;
+
+          import android.graphics.Color;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.view.View;
+          import android.view.Window;
+          import android.view.WindowManager;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+
+              private static final int COL_KHAKI = Color.parseColor("#DDD8C4");
+              private static final int COL_WHITE = Color.parseColor("#FFFFFF");
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  Window w = getWindow();
+                  w.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                  w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                      w.setStatusBarColor(COL_KHAKI);
+                      w.setNavigationBarColor(COL_WHITE);
+                  }
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                      View decor = w.getDecorView();
+                      int vis = decor.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                          vis |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                      }
+                      decor.setSystemUiVisibility(vis);
+                  }
+
+                  if (getBridge() != null && getBridge().getWebView() != null) {
+                      WebView webView = getBridge().getWebView();
+                      webView.setBackgroundColor(COL_KHAKI);
+                      WebSettings settings = webView.getSettings();
+                      settings.setAllowFileAccess(true);
+                      settings.setAllowContentAccess(true);
+                      settings.setDomStorageEnabled(true);
+                  }
+              }
+          }
+          EOF
+
+      - name: Sync Capacitor assets
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+
+          attempt=1
+          max_attempts=5
+          until ./gradlew assembleDebug --no-daemon; do
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Gradle build failed after $max_attempts attempts"
+              exit 1
+            fi
+            sleep_sec=$((attempt * 15))
+            echo "Maven/Gradle transient error (429/network). Retry $((attempt + 1))/$max_attempts in ${sleep_sec}s..."
+            sleep "$sleep_sec"
+            rm -rf ~/.gradle/caches/modules-2/modules-2.lock ~/.gradle/wrapper/dists/*/*.lck || true
+            attempt=$((attempt + 1))
+          done
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RezervPlus-APK-v2.0
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
