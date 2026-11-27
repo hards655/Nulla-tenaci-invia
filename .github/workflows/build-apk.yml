@@ -62,7 +62,7 @@ jobs:
           npx cap init "Резерв+" "ua.gov.rezervplus.app" --web-dir=www
           npx cap add android
 
-      - name: Configure app.ico icon and edge-to-edge Android theme
+      - name: Configure app.ico icon and native Android bars
         run: |
           ICON_SRC=""
           if [ -f www/app.ico ]; then
@@ -81,7 +81,6 @@ jobs:
             done
           fi
 
-          # Прозорий/хакі статус-бар зверху та білий навігаційний бар внизу
           cat << 'EOF' > android/app/src/main/res/values/styles.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -104,6 +103,42 @@ jobs:
               </style>
           </resources>
           EOF
+
+          MAIN_ACTIVITY="android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java"
+          if [ -f "$MAIN_ACTIVITY" ]; then
+            python3 - << 'PYEOF'
+          path = "android/app/src/main/java/ua/gov/rezervplus/app/MainActivity.java"
+          with open(path, "r", encoding="utf-8") as f:
+              code = f.read()
+
+          injection = """
+              android.view.Window w = getWindow();
+              w.clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+              w.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+              w.setStatusBarColor(android.graphics.Color.parseColor("#DDD8C4"));
+              w.setNavigationBarColor(android.graphics.Color.parseColor("#FFFFFF"));
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                android.view.View decor = w.getDecorView();
+                int flags = decor.getSystemUiVisibility();
+                flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                  flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+                decor.setSystemUiVisibility(flags);
+              }
+          """
+          if "setNavigationBarColor" not in code and "super.onCreate(savedInstanceState);" in code:
+              code = code.replace(
+                  "super.onCreate(savedInstanceState);",
+                  "super.onCreate(savedInstanceState);" + injection,
+                  1
+              )
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(code)
+          PYEOF
+          fi
+
+          grep -n "setNavigationBarColor\|setStatusBarColor" "$MAIN_ACTIVITY" || true
 
       - name: Sync Capacitor assets
         run: npx cap sync android
